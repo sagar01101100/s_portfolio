@@ -41,7 +41,13 @@ const code=texture(()=>{});
 const codingMonitor=panel(2.05,1.16,-1.6,2.14,-2.38,code.tex);
 box(.08,.35,.08,-1.6,1.58,-2.37);box(.55,.035,.28,-1.6,1.445,-2.3);
 
-box(.87,.045,.29,-1.6,1.45,-1.62,mats.black);const keys=[];for(let i=0;i<12;i++)for(let j=0;j<4;j++)keys.push(box(.053,.012,.044,-2+i*.068,1.478,-1.72+j*.062,i%3?mats.metal:mats.gold));const mouse=ball(.075,-.84,1.48,-1.6,mats.ivory);mouse.scale.set(.7,.35,1);cyl(.09,.075,.2,-2.9,1.52,-2.05,mats.ivory);cyl(.075,.075,.005,-2.9,1.625,-2.05,mats.black);box(.46,.84,.67,.03,.45,-2.08,mats.black);box(.008,.69,.54,-.21,.47,-2.08,new T.MeshPhysicalMaterial({color:'#68bdda',transparent:true,opacity:.23,roughness:.1}));box(.32,.025,.02,.03,.85,-1.735,mats.glow);const fans=[];for(let y of [.25,.55]){const f=new T.Group();f.position.set(.03,y,-1.735);scene.add(f);for(let j=0;j<5;j++){const b=box(.018,.2,.015,0,0,0,mats.metal,f);b.rotation.z=j*Math.PI/5}fans.push(f)}
+// Pull-out tray keeps the keyboard within a seated person's natural reach.
+const keyboard=new T.Group();keyboard.position.set(-1.6,1.155,-1.42);scene.add(keyboard);
+box(.72,.025,.35,0,-.025,0,mats.dark,keyboard);
+for(const side of [-1,1])box(.018,.19,.25,side*.34,.08,-.02,mats.metal,keyboard);
+box(.50,.025,.19,0,0,0,mats.black,keyboard);
+const keys=[];for(let i=0;i<12;i++)for(let j=0;j<4;j++){const key=box(.029,.008,.030,(i-5.5)*.039,.018,(j-1.5)*.043,i%3?mats.metal:mats.gold,keyboard);key.userData.restY=.018;keys.push(key)}
+const mouse=ball(.075,-.84,1.48,-1.6,mats.ivory);mouse.scale.set(.7,.35,1);cyl(.09,.075,.2,-2.9,1.52,-2.05,mats.ivory);cyl(.075,.075,.005,-2.9,1.625,-2.05,mats.black);box(.46,.84,.67,.03,.45,-2.08,mats.black);box(.008,.69,.54,-.21,.47,-2.08,new T.MeshPhysicalMaterial({color:'#68bdda',transparent:true,opacity:.23,roughness:.1}));box(.32,.025,.02,.03,.85,-1.735,mats.glow);const fans=[];for(let y of [.25,.55]){const f=new T.Group();f.position.set(.03,y,-1.735);scene.add(f);for(let j=0;j<5;j++){const b=box(.018,.2,.015,0,0,0,mats.metal,f);b.rotation.z=j*Math.PI/5}fans.push(f)}
 // Reference chair: white ergonomic frame, grey woven mesh, separate headrest,
 // curved lumbar support, padded seat, adjustable black arm pads and five casters.
 const chair=new T.Group();chair.position.set(-1.6,0,-.86);scene.add(chair);
@@ -151,14 +157,56 @@ function hairPoint(a,t){const frontal=Math.max(0,Math.cos(a)),edge=-.027+.141*Ma
 const capPos=[],capIdx=[];for(let i=0;i<=32;i++)for(let j=0;j<=80;j++){capPos.push(...hairPoint(j/80*Math.PI*2,i/32));if(i<32&&j<80){const k=i*81+j;capIdx.push(k,k+1,k+81,k+1,k+82,k+81)}}const capGeo=new T.BufferGeometry();capGeo.setAttribute('position',new T.Float32BufferAttribute(capPos,3));capGeo.setIndex(capIdx);capGeo.computeVertexNormals();hairRoot.add(new T.Mesh(capGeo,hair));
 const locks=[];for(let i=0;i<650;i++){const a=portraitRandom()*Math.PI*2,t=portraitRandom()*.83,start=hairPoint(a,t),mid=hairPoint(a-.17,t+.1),end=hairPoint(a-.34,Math.min(.99,t+.23));const lift=.003+portraitRandom()*.025;mid[1]+=lift;end[0]+=.003+portraitRandom()*.008;end[1]+=lift*(.3+portraitRandom()*.8);locks.push(strand([start,mid,end],.00065+portraitRandom()*.00085,7))}combinePortraitStrands(locks,hair,hairRoot);
 let nextHumanBlink=2.7,humanBlinkStart=-10;
-function animatePortrait(dt,time,seated,walking,petting){if(time>=nextHumanBlink){humanBlinkStart=time;nextHumanBlink=time+2.5+portraitRandom()*4.2}const blinkT=time-humanBlinkStart,blink=blinkT<.19?Math.sin(blinkT/.19*Math.PI):0;for(const e of humanEyes){e.eyeGroup.scale.y=Math.max(.08,1-blink*.92);e.lid.visible=blink>.25;e.iris.position.x=Math.sin(Math.floor(time*1.4)*1.73)*.0018;e.iris.position.y=seated?-.0008:0}chest.scale.z=1+Math.sin(time*(walking?2.6:1.75))*.004;hairRoot.rotation.z=Math.sin(time*1.3)*.002;torso.rotation.z+=!walking&&!seated?Math.sin(time*.65)*.01:0;for(const arm of arms){arm.fingers.forEach((finger,i)=>{const typing=seated&&!petting&&Math.sin(time*.9)>-.55;const tap=typing?Math.max(0,Math.sin(time*7+i*1.9+arm.side))*.24:0;finger.rotation.x=T.MathUtils.damp(finger.rotation.x,.12+tap,12,dt);finger.children[1].rotation.x=.16+tap*.7})}}
+function animatePortrait(dt,time,seated,walking,petting){if(time>=nextHumanBlink){humanBlinkStart=time;nextHumanBlink=time+2.5+portraitRandom()*4.2}const blinkT=time-humanBlinkStart,blink=blinkT<.19?Math.sin(blinkT/.19*Math.PI):0;for(const e of humanEyes){e.eyeGroup.scale.y=Math.max(.08,1-blink*.92);e.lid.visible=blink>.25;e.iris.position.x=Math.sin(Math.floor(time*1.4)*1.73)*.0018;e.iris.position.y=seated?-.0008:0}chest.scale.z=1+Math.sin(time*(walking?2.6:1.75))*.004;hairRoot.rotation.z=Math.sin(time*1.3)*.002;torso.rotation.z+=!walking&&!seated?Math.sin(time*.65)*.01:0;for(const arm of arms){arm.fingers.forEach((finger,i)=>{const typing=false;const tap=typing?Math.max(0,Math.sin(time*7+i*1.9+arm.side))*.24:0;finger.rotation.x=T.MathUtils.damp(finger.rotation.x,.12+tap,12,dt);finger.children[1].rotation.x=.16+tap*.7})}}
 
 // Each trouser leg is one continuous surface, deformed through hip, knee and ankle.
 function organicLimb(material){const mesh=new T.Mesh(new T.BufferGeometry(),material),vertices=new Float32Array(25*20*3),indices=[];for(let i=0;i<24;i++)for(let j=0;j<20;j++){const a=i*20+j,b=i*20+(j+1)%20;indices.push(a,b,a+20,b,b+20,a+20)}mesh.geometry.setAttribute('position',new T.BufferAttribute(vertices,3).setUsage(T.DynamicDrawUsage));mesh.geometry.setIndex(indices);mesh.castShadow=true;mesh.frustumCulled=false;return mesh}
 function shapeLeg(mesh,a,k,b){const curve=new T.CatmullRomCurve3([a,k,b],false,'centripetal'),attr=mesh.geometry.attributes.position;for(let i=0;i<25;i++){const t=i/24,c=curve.getPoint(t),tangent=curve.getTangent(t).normalize(),normal=new T.Vector3(1,0,0).cross(tangent).normalize(),binormal=tangent.clone().cross(normal).normalize();const r=t<.5?T.MathUtils.lerp(.092,.073,t*2):T.MathUtils.lerp(.073,.05,(t-.5)*2);for(let j=0;j<20;j++){const angle=j/20*Math.PI*2,fold=1+Math.sin(t*43+angle*2)*.025;const v=c.clone().addScaledVector(normal,Math.cos(angle)*r*fold).addScaledVector(binormal,Math.sin(angle)*r*.94);attr.setXYZ(i*20+j,v.x,v.y,v.z)}}attr.needsUpdate=true;mesh.geometry.computeVertexNormals()}
 const limbs=[];for(const side of [-1,1]){const trouser=organicLimb(pants);human.add(trouser);const foot=new T.Group();human.add(foot);const sole=ball(.12,0,-.063,.012,mats.black,foot);sole.scale.set(.49,.10,1.07);const bareFoot=ball(.10,0,-.034,.013,skin,foot);bareFoot.scale.set(.51,.28,1.1);for(let j=0;j<5;j++){const toe=ball(.012-j*.001,-.036+j*.017,-.039,.097-Math.abs(j-1)*.006,skin,foot);toe.scale.y=.65}for(const dir of [-1,1])portraitTube([[0,-.012,.073],[dir*.025,.001,.029],[dir*.046,-.025,-.009]],.009,mats.black,foot);limbs.push({side,trouser,foot})}
 const arms=[];
-for(const side of [-1,1]){const shoulder=new T.Group();shoulder.position.set(side*.202,.373,0);torso.add(shoulder);const sleeveProfile=[[.026,.04],[0,.071],[-.06,.067],[-.15,.058],[-.26,.051],[-.31,.051]].reverse().map(([y,r])=>new T.Vector2(r,y));const sleeve=new T.Mesh(new T.LatheGeometry(sleeveProfile,32),fabric);shoulder.add(sleeve);const elbow=new T.Group();elbow.position.y=-.29;shoulder.add(elbow);const forearmProfile=[[-.267,.026],[-.23,.028],[-.15,.036],[-.065,.043],[.015,.046]].map(([y,r])=>new T.Vector2(r,y));const forearm=new T.Mesh(new T.LatheGeometry(forearmProfile,32),skin);forearm.scale.z=.88;elbow.add(forearm);for(let i=0;i<3;i++)cyl(.052-i*.001,.053-i*.001,.022,0,-.005-i*.015,0,fabric,elbow);const hand=new T.Group();hand.position.y=-.272;elbow.add(hand);const palm=ball(.039,0,-.022,0,skin,hand);palm.scale.set(.79,1.12,.38);const fingers=[];for(let j=0;j<4;j++){const finger=new T.Group();finger.position.set(-.022+j*.014,-.047,.001);hand.add(finger);const length=[.050,.057,.053,.041][j];let joint=finger;for(let k=0;k<3;k++){const seg=new T.Mesh(new T.CapsuleGeometry(.0055-k*.0007,length/3-.006,4,8),skin);seg.position.y=-length/6;joint.add(seg);if(k<2){const next=new T.Group();next.position.y=-length/3;joint.add(next);joint=next}}fingers.push(finger)}const thumb=new T.Group();thumb.position.set(side*.029,-.011,.005);thumb.rotation.z=side*.55;hand.add(thumb);const th=new T.Mesh(new T.CapsuleGeometry(.007,.028,4,8),skin);th.position.y=-.014;thumb.add(th);if(side===1){const bracelet=new T.Mesh(new T.TorusGeometry(.028,.0018,6,32),red);bracelet.rotation.x=Math.PI/2;bracelet.position.y=-.245;elbow.add(bracelet);portraitTube([[.023,-.244,0],[.032,-.255,.004],[.028,-.269,.006]],.0011,red,elbow)}arms.push({side,shoulder,elbow,hand,fingers})}
+for(const side of [-1,1]){const shoulder=new T.Group();shoulder.position.set(side*.202,.373,0);torso.add(shoulder);const sleeveProfile=[[.026,.04],[0,.071],[-.06,.067],[-.15,.058],[-.26,.051],[-.31,.051]].reverse().map(([y,r])=>new T.Vector2(r,y));const sleeve=new T.Mesh(new T.LatheGeometry(sleeveProfile,32),fabric);shoulder.add(sleeve);const elbow=new T.Group();elbow.position.y=-.29;shoulder.add(elbow);const forearmProfile=[[-.267,.026],[-.23,.028],[-.15,.036],[-.065,.043],[.015,.046]].map(([y,r])=>new T.Vector2(r,y));const forearm=new T.Mesh(new T.LatheGeometry(forearmProfile,32),skin);forearm.scale.z=.88;elbow.add(forearm);for(let i=0;i<3;i++)cyl(.052-i*.001,.053-i*.001,.022,0,-.005-i*.015,0,fabric,elbow);const hand=new T.Group();hand.position.y=-.272;elbow.add(hand);const palm=ball(.039,0,-.022,0,skin,hand);palm.scale.set(.79,1.12,.38);const fingers=[];for(let j=0;j<4;j++){const finger=new T.Group();finger.position.set(-.022+j*.014,-.047,.001);hand.add(finger);const length=[.050,.057,.053,.041][j];let joint=finger;for(let k=0;k<3;k++){const seg=new T.Mesh(new T.CapsuleGeometry(.0055-k*.0007,length/3-.006,4,8),skin);seg.position.y=-length/6;joint.add(seg);if(k<2){const next=new T.Group();next.position.y=-length/3;joint.add(next);joint=next}}const tip=new T.Object3D();tip.position.y=-length/3; joint.add(tip);finger.userData.tip=tip;fingers.push(finger)}const thumb=new T.Group();thumb.position.set(side*.029,-.011,.005);thumb.rotation.z=side*.55;hand.add(thumb);const th=new T.Mesh(new T.CapsuleGeometry(.007,.028,4,8),skin);th.position.y=-.014;thumb.add(th);if(side===1){const bracelet=new T.Mesh(new T.TorusGeometry(.028,.0018,6,32),red);bracelet.rotation.x=Math.PI/2;bracelet.position.y=-.245;elbow.add(bracelet);portraitTube([[.023,-.244,0],[.032,-.255,.004],[.028,-.269,.006]],.0011,red,elbow)}arms.push({side,shoulder,elbow,hand,fingers})}
+// Solve both arm bones against a world-space wrist target. The hand orientation
+// is independent of the elbow so the palm stays parallel to the key surface.
+const armDown=new T.Vector3(0,-1,0),typingPalm=new T.Quaternion().setFromEuler(new T.Euler(-Math.PI/2,0,0));
+let typingBlend=0;
+function solveTyping(dt,time,enabled){
+ typingBlend=T.MathUtils.damp(typingBlend,enabled?1:0,9,dt);
+ keys.forEach(key=>key.position.y=key.userData.restY);
+ if(!enabled)return;
+ human.updateMatrixWorld(true);keyboard.updateMatrixWorld(true);
+ const palmWorld=human.getWorldQuaternion(new T.Quaternion()).multiply(typingPalm);
+ for(const arm of arms){
+  const clock=time*2.7+(arm.side>0?.53:0),active=Math.floor(clock)%4,phase=clock%1;
+  const working=!reduced&&Math.sin(time*.9)>-.55&&typingBlend>.995;
+  const press=working?Math.max(0,Math.sin((phase-.15)/.7*Math.PI)):0;
+  arm.fingers.forEach((f,i)=>{f.rotation.x=i===active?.10+press*.10:-.22;f.children[1].rotation.x=i===active?.08:-.1});
+  arm.hand.updateWorldMatrix(true,true);
+  const finger=arm.fingers[active],tipLocal=arm.hand.worldToLocal(finger.userData.tip.getWorldPosition(new T.Vector3()));
+  const column=arm.side>0?3:8,key=keys[column*4+2];
+  const contact=working&&press>.92;key.position.y-=contact?.0025:0;
+  key.updateWorldMatrix(true,false);
+  const keyTop=key.getWorldPosition(new T.Vector3());keyTop.y+=.004;
+  // During recovery the pad clears the key; at full depression it meets its top.
+  const hover=working?Math.max(0,(.92-press)/.92)*.010:.004;
+  const goal=keyTop.clone().add(new T.Vector3(0,.0038+hover,0)).sub(tipLocal.clone().applyQuaternion(palmWorld));
+  const shoulder=arm.shoulder.getWorldPosition(new T.Vector3()),delta=goal.clone().sub(shoulder),distance=delta.length();
+  const upper=.29,lower=.272,reach=T.MathUtils.clamp(distance,.03,upper+lower-.001),axis=delta.normalize();
+  const along=(upper*upper-lower*lower+reach*reach)/(2*reach);
+  const bend=new T.Vector3(-arm.side*.18,-1,0);bend.addScaledVector(axis,-bend.dot(axis)).normalize();
+  const elbow=shoulder.clone().addScaledVector(axis,along).addScaledVector(bend,Math.sqrt(Math.max(0,upper*upper-along*along)));
+  const shoulderWorld=new T.Quaternion().setFromUnitVectors(armDown,elbow.clone().sub(shoulder).normalize());
+  const parentWorld=arm.shoulder.parent.getWorldQuaternion(new T.Quaternion());
+  arm.shoulder.quaternion.slerp(parentWorld.invert().multiply(shoulderWorld),typingBlend);
+  arm.shoulder.updateWorldMatrix(true,true);
+  const actualElbow=arm.elbow.getWorldPosition(new T.Vector3());
+  const forearmWorld=new T.Quaternion().setFromUnitVectors(armDown,goal.clone().sub(actualElbow).normalize());
+  arm.elbow.quaternion.slerp(arm.shoulder.getWorldQuaternion(new T.Quaternion()).invert().multiply(forearmWorld),typingBlend);
+  arm.elbow.updateWorldMatrix(true,true);
+  arm.hand.quaternion.slerp(arm.elbow.getWorldQuaternion(new T.Quaternion()).invert().multiply(palmWorld),typingBlend);
+  arm.hand.updateWorldMatrix(true,true);
+  arm.typingContact={key,tip:finger.userData.tip,contact,goal,reach:distance};
+ }
+}
 function segment(mesh,a,b){mesh.position.copy(a).add(b).multiplyScalar(.5);mesh.scale.y=a.distanceTo(b)/.4;mesh.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),b.clone().sub(a).normalize())}
 function solveLeg(l,foot,hipY){const a=new T.Vector3(l.side*.105,hipY,0),b=new T.Vector3(foot.x??l.side*.14,foot.y,foot.z),d=b.clone().sub(a),len=Math.min(d.length(),.795),mid=a.clone().add(b).multiplyScalar(.5),bend=new T.Vector3(0,-d.z,d.y).normalize().negate();const k=mid.add(bend.multiplyScalar(Math.sqrt(Math.max(0,.4*.4-len*len/4))));shapeLeg(l.trouser,a,k,b);l.foot.position.copy(b);l.foot.position.z+=.065}
 // The cat is the room's navigation character. Its paws and body share one
@@ -361,15 +409,16 @@ function updateHuman(dt,time){
  leg.foot.rotation.x=walking?(cycle<.12?.12*(1-cycle/.12):cycle>.48&&cycle<.6?-.16*(cycle-.48)/.12:cycle>.6?-.12*Math.sin((cycle-.6)/.4*Math.PI):0):0;
  }
  humanAnchored=walking;
- for(const arm of arms){const previousShoulder=arm.shoulder.rotation.x,previousElbow=arm.elbow.rotation.x;arm.shoulder.rotation.z=arm.side*.08;arm.shoulder.rotation.x=seated?-1:walking?Math.sin(humanDistance/.86*Math.PI*2+arm.side*Math.PI/2)*.23:0;arm.elbow.rotation.x=seated?-1.1:-.12;arm.hand.rotation.x=seated&&!reduced?Math.sin(time*15+arm.side)*.10:0;if(social){arm.shoulder.rotation.x=-.25;arm.elbow.rotation.x=-.85}if(petting&&arm.side===1){arm.shoulder.rotation.x=-.4+Math.sin(time*2.3)*.045;arm.elbow.rotation.x=-.2;arm.hand.rotation.x=Math.sin(time*2.3)*.09}arm.shoulder.rotation.x=T.MathUtils.damp(previousShoulder,arm.shoulder.rotation.x,6,dt);arm.elbow.rotation.x=T.MathUtils.damp(previousElbow,arm.elbow.rotation.x,6,dt)}
+ for(const arm of arms){const previousShoulder=arm.shoulder.rotation.x,previousElbow=arm.elbow.rotation.x;arm.shoulder.rotation.y=T.MathUtils.damp(arm.shoulder.rotation.y,0,6,dt);arm.elbow.rotation.y=T.MathUtils.damp(arm.elbow.rotation.y,0,6,dt);arm.elbow.rotation.z=T.MathUtils.damp(arm.elbow.rotation.z,0,6,dt);arm.hand.rotation.y=T.MathUtils.damp(arm.hand.rotation.y,0,6,dt);arm.hand.rotation.z=T.MathUtils.damp(arm.hand.rotation.z,0,6,dt);arm.shoulder.rotation.z=arm.side*.08;arm.shoulder.rotation.x=seated?-1:walking?Math.sin(humanDistance/.86*Math.PI*2+arm.side*Math.PI/2)*.23:0;arm.elbow.rotation.x=seated?-1.1:-.12;arm.hand.rotation.x=seated&&!reduced?Math.sin(time*15+arm.side)*.10:0;if(social){arm.shoulder.rotation.x=-.25;arm.elbow.rotation.x=-.85}if(petting&&arm.side===1){arm.shoulder.rotation.x=-.4+Math.sin(time*2.3)*.045;arm.elbow.rotation.x=-.2;arm.hand.rotation.x=Math.sin(time*2.3)*.09}arm.shoulder.rotation.x=T.MathUtils.damp(previousShoulder,arm.shoulder.rotation.x,6,dt);arm.elbow.rotation.x=T.MathUtils.damp(previousElbow,arm.elbow.rotation.x,6,dt)}
  animatePortrait(dt,time,seated,walking,petting);
+ solveTyping(dt,time,seated&&!social&&Math.abs(Math.atan2(Math.sin(developerYaw-Math.PI),Math.cos(developerYaw-Math.PI)))<.035);
 }
 const breakButton=document.createElement('button');breakButton.textContent='Take a break';breakButton.onclick=startHumanBreak;$('.controls').append(breakButton);
 let last=performance.now(),time=0,lastCode=-1;
 function animate(now){requestAnimationFrame(animate);const dt=Math.min((now-last)/1000,.05);last=now;time+=dt;
 updateCat(dt,time);
 updateHuman(dt,time);
-if(!reduced){fans.forEach(f=>f.rotation.z+=dt*5);leaves.forEach((l,i)=>l.rotation.x=Math.sin(time*.7+i)*.035);keys.forEach((k,i)=>k.position.y=1.478-(humanState==='CODING'&&Math.sin(time*12+i*1.3)>.93?.009:0));blue.intensity=14+Math.sin(time*.7)}
+if(!reduced){fans.forEach(f=>f.rotation.z+=dt*5);leaves.forEach((l,i)=>l.rotation.x=Math.sin(time*.7+i)*.035);blue.intensity=14+Math.sin(time*.7)}
 const sec=Math.floor(time*2);if(sec!==lastCode){lastCode=sec;const c=code.ctx;c.fillStyle='#101d28';c.fillRect(0,0,1024,640);c.fillStyle='#263943';c.fillRect(0,0,1024,58);c.font='23px monospace';c.fillStyle='#bececc';c.fillText('●  ●  ●      workspace / developer.ts',30,37);const snippet=snippets[Math.floor(time/20)%snippets.length],lines=Math.min(snippet.length,4+Math.floor(time%20));c.font='24px monospace';snippet.slice(0,lines).forEach((s,i)=>{c.fillStyle='#617779';c.fillText(String(i+1).padStart(2),20,105+i*39);c.fillStyle=s.startsWith('//')?'#77998c':s.includes('return')?'#dcb88c':'#a9c7d6';c.fillText(s,80,105+i*39)});if(sec%2)c.fillRect(82,120+(lines-1)*39,12,3);code.tex.needsUpdate=true}
 const date=new Date();hour.rotation.z=-(date.getHours()%12+date.getMinutes()/60)*Math.PI/6;minute.rotation.z=-date.getMinutes()*Math.PI/30;
 const mobile=innerWidth<760;
