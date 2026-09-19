@@ -1,0 +1,5 @@
+# The editable website is already in dist; Vite is only used for local development.
+[build]
+  base = "."
+  command = "node --check dist/app.js"
+  publish = "dist"
