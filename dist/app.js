@@ -94,18 +94,18 @@ for(const [key,d] of Object.entries(destinations)){
 const leaves=[];for(let [x,z,size] of [[4.25,1.6,1],[-4.1,-.25,.8]]){cyl(.22*size,.15*size,.4*size,x,.2*size,z,mats.ivory);for(let i=0;i<10;i++){const a=i*2.4;line([x,.3*size,z],[x+Math.sin(a)*.24*size,(.65+i*.05)*size,z+Math.cos(a)*.23*size],.012,mats.wood);const leaf=ball(.16,x+Math.sin(a)*.3*size,(.75+i*.05)*size,z+Math.cos(a)*.28*size,new T.MeshStandardMaterial({color:i%2?'#53674b':'#344b3b'}));leaf.scale.set(.45,1.6,.7);leaf.rotation.z=Math.sin(a)*.7;leaves.push(leaf)}}cyl(.23,.28,.05,-4.35,.04,-2.8,mats.black);cyl(.027,.027,2.8,-4.35,1.4,-2.8,mats.gold);cyl(.3,.45,.4,-4.35,2.92,-2.8,new T.MeshStandardMaterial({color:'#e4c399',emissive:'#9e642c',emissiveIntensity:.5}));
 const clock=new T.Group();clock.position.set(-3.65,3.48,-3.23);scene.add(clock);const face=cyl(.24,.24,.045,0,0,0,mats.ivory,clock);face.rotation.x=Math.PI/2;const hour=box(.018,.13,.015,0,.055,.04,mats.black,clock),minute=box(.012,.19,.015,0,.075,.05,mats.black,clock);
 box(.3,.018,.41,-2.48,1.438,-2.15,mats.ivory);for(let i=0;i<5;i++)box(.2,.002,.005,-2.48,1.45,-2.25+i*.04,mats.dark);box(.14,.018,.26,-.34,1.44,-1.58,mats.black);box(.11,.004,.21,-.34,1.452,-1.58,mats.glow);
-// Humanoid: articulated segments driven by planted-foot two-bone IK.
-const robot=new T.Group();scene.add(robot);let pos=new T.Vector3(-1.6,0,-.83),heading=Math.PI,hipHeight=.91;
+// Human character with continuous deforming clothing and planted-foot IK.
+const human=new T.Group();scene.add(human);let pos=new T.Vector3(-1.6,0,-.83),heading=Math.PI,hipHeight=.91;
 // Articulated portrait-inspired model: linen kurta, denim and swept black hair.
 const skin=new T.MeshStandardMaterial({color:'#b4866c',roughness:.72});
 const hair=new T.MeshStandardMaterial({color:'#191a1a',roughness:.9});
 const fabric=new T.MeshStandardMaterial({color:'#e1e3df',roughness:.98});
 const pants=new T.MeshStandardMaterial({color:'#414e5f',roughness:.96});
 const shirt=fabric,red=new T.MeshStandardMaterial({color:'#bb483d',roughness:1});
-const torso=new T.Group();robot.add(torso);
+const torso=new T.Group();human.add(torso);
 // Shaped continuous shirt silhouette, rather than separate jacket panels.
-const profile=[[-.13,.20],[0,.19],[.13,.20],[.29,.235],[.4,.23],[.46,.14]].map(([y,r])=>new T.Vector2(r,y));
-const chest=new T.Mesh(new T.LatheGeometry(profile,40),fabric);chest.scale.z=.65;torso.add(chest);
+const profile=[[-.23,.205],[-.19,.215],[-.08,.202],[0,.19],[.13,.20],[.29,.225],[.4,.22],[.46,.13]].map(([y,r])=>new T.Vector2(r,y));
+const chestGeometry=new T.LatheGeometry(profile,48);const shirtVertices=chestGeometry.attributes.position;for(let i=0;i<shirtVertices.count;i++){const x=shirtVertices.getX(i),y=shirtVertices.getY(i),z=shirtVertices.getZ(i),ripple=Math.sin(y*68+x*21)*.003+Math.sin(y*39-z*17)*.002;shirtVertices.setXYZ(i,x*(1+ripple),y,z+ripple)}chestGeometry.computeVertexNormals();const chest=new T.Mesh(chestGeometry,fabric);chest.scale.z=.65;torso.add(chest);
 const waist=ball(.19,0,-.005,0,pants,torso);waist.scale.set(1.04,.75,.7);
 for(const side of [-1,1]){const collar=box(.085,.11,.018,side*.053,.445,.079,fabric,torso);collar.rotation.z=side*.3;line([side*.17,-.10,.08],[side*.20,.30,.09],.003,new T.MeshStandardMaterial({color:'#c8ceca'}),torso)}
 const placket=box(.026,.26,.008,0,.30,.15,fabric,torso);for(const y of [.23,.31,.39]){const button=ball(.008,0,y,.158,mats.dark,torso);button.scale.z=.4}
@@ -115,17 +115,25 @@ const head=new T.Group();head.position.y=.665;torso.add(head);
 const skull=ball(.163,0,0,0,skin,head);skull.scale.set(.82,1.18,.94);
 const jaw=ball(.104,0,-.087,.029,skin,head);jaw.scale.set(1,.8,.9);
 const hairCap=new T.Mesh(new T.SphereGeometry(.169,24,16,0,Math.PI*2,0,Math.PI*.56),hair);hairCap.position.y=.044;hairCap.scale.set(.91,1.08,1);head.add(hairCap);
-for(let i=0;i<10;i++){const tuft=ball(.047,-.115+i*.024,.16+Math.sin(i*.43)*.035,.065,hair,head);tuft.scale.set(.65,1.35,1);tuft.rotation.z=-.45}
+// Swept locks follow the crown; fine strands break up the silhouette.
+for(let i=0;i<42;i++){const u=i/41,x=-.128+u*.256;const path=new T.CatmullRomCurve3([new T.Vector3(x,.112,.099),new T.Vector3(x+.024,.195+Math.sin(u*Math.PI)*.025,.075),new T.Vector3(x+.012,.219+Math.sin(u*Math.PI)*.02,-.008),new T.Vector3(x-.025,.152,-.115)]);const lock=new T.Mesh(new T.TubeGeometry(path,16,.006+(i%3)*.0017,5,false),hair);head.add(lock)}
+for(let i=0;i<20;i++){const x=-.12+i*.012;const path=new T.CatmullRomCurve3([new T.Vector3(x,.151,.09),new T.Vector3(x+.025,.232+Math.sin(i*2)*.012,.025),new T.Vector3(x+.031,.215,-.04)]);head.add(new T.Mesh(new T.TubeGeometry(path,10,.0017,3,false),hair))}
 // Moustache and close-cropped beard follow the lower face, with the lips exposed.
 for(let side of [-1,1]){const stache=ball(.037,side*.026,-.052,.143,hair,head);stache.scale.set(1,.33,.28);stache.rotation.z=side*.16;const cheek=ball(.058,side*.075,-.095,.085,hair,head);cheek.scale.set(.43,1.05,.48)}
 const beard=ball(.079,0,-.143,.057,hair,head);beard.scale.set(1,.65,.9);
-for(let x of [-.058,.058]){const eye=ball(.022,x,.018,.134,mats.ivory,head);eye.scale.set(1,.57,.43);ball(.009,x,.018,.146,mats.black,head);const brow=box(.047,.009,.012,x,.05,.14,hair,head);brow.rotation.z=x>0?-.07:.07;ball(.025,Math.sign(x)*.146,-.005,0,skin,head)}
+for(let x of [-.058,.058]){const eye=ball(.022,x,.018,.134,mats.ivory,head);eye.scale.set(1,.57,.43);ball(.009,x,.018,.146,mats.black,head);const brow=ball(.025,x,.05,.14,hair,head);brow.scale.set(1,.16,.25);brow.rotation.z=x>0?-.07:.07;ball(.025,Math.sign(x)*.146,-.005,0,skin,head)}
 const nose=ball(.027,0,-.015,.146,skin,head);nose.scale.set(.55,1.2,1.05);
-box(.046,.007,.006,0,-.076,.129,new T.MeshStandardMaterial({color:'#624636'}),head);
-const limbs=[];for(let side of [-1,1]){const hip=ball(.075,0,0,0,pants,robot),knee=ball(.065,0,0,0,pants,robot),thigh=cyl(.089,.073,.4,0,0,0,pants,robot),shin=cyl(.07,.048,.4,0,0,0,pants,robot),foot=box(.145,.09,.27,0,0,0,mats.dark,robot);box(.146,.027,.28,0,-.04,0,mats.dark,foot);box(.1,.012,.075,0,.048,.022,mats.dark,foot);limbs.push({side,hip,knee,thigh,shin,foot})}
-const arms=[];for(let side of [-1,1]){const shoulder=new T.Group();shoulder.position.set(side*.235,.38,0);torso.add(shoulder);ball(.082,0,0,0,fabric,shoulder);cyl(.073,.054,.28,0,-.16,0,fabric,shoulder);const elbow=new T.Group();elbow.position.y=-.31;shoulder.add(elbow);ball(.055,0,0,0,fabric,elbow);cyl(.051,.034,.26,0,-.14,0,skin,elbow);cyl(.057,.058,.072,0,-.045,0,fabric,elbow);const hand=ball(.05,0,-.3,0,skin,elbow);hand.scale.set(.8,1.3,.5);for(let j=0;j<4;j++){const finger=cyl(.009,.007,.062,-.026+j*.018,-.357,.007,skin,elbow);finger.rotation.x=-.15}ball(.015,side*.04,-.301,.013,skin,elbow);if(side===1)cyl(.039,.039,.025,0,-.267,0,red,elbow);arms.push({side,shoulder,elbow,hand})}
+const lipMaterial=new T.MeshStandardMaterial({color:'#825951',roughness:.85});for(const [y,width] of [[-.072,.028],[-.082,.026]]){const lip=ball(width,0,y,.142,lipMaterial,head);lip.scale.set(1,.13,.24)}
+const bridge=ball(.022,0,.008,.146,skin,head);bridge.scale.set(.66,1.5,.62);
+for(const side of [-1,1]){const cheekbone=ball(.057,side*.081,-.026,.092,skin,head);cheekbone.scale.set(.7,.68,.46);const nostril=ball(.006,side*.014,-.035,.161,new T.MeshStandardMaterial({color:'#76503d'}),head);nostril.scale.y=.45;const earRidge=ball(.015,side*.149,-.011,.01,skin,head);earRidge.scale.set(.42,1.3,.6)}
+
+// Each trouser leg is one continuous surface, deformed through hip, knee and ankle.
+function organicLimb(material){const mesh=new T.Mesh(new T.BufferGeometry(),material),vertices=new Float32Array(25*20*3),indices=[];for(let i=0;i<24;i++)for(let j=0;j<20;j++){const a=i*20+j,b=i*20+(j+1)%20;indices.push(a,b,a+20,b,b+20,a+20)}mesh.geometry.setAttribute('position',new T.BufferAttribute(vertices,3).setUsage(T.DynamicDrawUsage));mesh.geometry.setIndex(indices);mesh.castShadow=true;mesh.frustumCulled=false;return mesh}
+function shapeLeg(mesh,a,k,b){const curve=new T.CatmullRomCurve3([a,k,b],false,'centripetal'),attr=mesh.geometry.attributes.position;for(let i=0;i<25;i++){const t=i/24,c=curve.getPoint(t),tangent=curve.getTangent(t).normalize(),normal=new T.Vector3(1,0,0).cross(tangent).normalize(),binormal=tangent.clone().cross(normal).normalize();const r=t<.5?T.MathUtils.lerp(.092,.073,t*2):T.MathUtils.lerp(.073,.05,(t-.5)*2);for(let j=0;j<20;j++){const angle=j/20*Math.PI*2,fold=1+Math.sin(t*43+angle*2)*.025;const v=c.clone().addScaledVector(normal,Math.cos(angle)*r*fold).addScaledVector(binormal,Math.sin(angle)*r*.94);attr.setXYZ(i*20+j,v.x,v.y,v.z)}}attr.needsUpdate=true;mesh.geometry.computeVertexNormals()}
+const limbs=[];for(const side of [-1,1]){const trouser=organicLimb(pants);human.add(trouser);const foot=new T.Group();human.add(foot);const shoe=ball(.12,0,-.01,.01,mats.black,foot);shoe.scale.set(.6,.43,1.22);const sole=ball(.12,0,-.049,.01,mats.ivory,foot);sole.scale.set(.63,.13,1.25);const instep=ball(.074,0,.008,-.046,mats.black,foot);instep.scale.set(.88,.65,1);limbs.push({side,trouser,foot})}
+const arms=[];for(const side of [-1,1]){const shoulder=new T.Group();shoulder.position.set(side*.215,.37,0);torso.add(shoulder);const sleeve=ball(.085,0,-.115,0,fabric,shoulder);sleeve.scale.set(.92,1.98,.95);const elbow=new T.Group();elbow.position.y=-.30;shoulder.add(elbow);const forearm=ball(.052,0,-.13,0,skin,elbow);forearm.scale.set(.85,2.75,.85);for(let i=0;i<3;i++){const cuff=cyl(.058-i*.001,.059-i*.001,.025,0,-.01-i*.021,0,fabric,elbow);cuff.rotation.z=side*.03}const hand=ball(.048,0,-.292,0,skin,elbow);hand.scale.set(.76,1.18,.43);for(let j=0;j<4;j++){const finger=new T.Mesh(new T.CapsuleGeometry(.007,.041+(j===1?.012:0),4,8),skin);finger.position.set(-.021+j*.014,-.345,.005);finger.rotation.x=-.15;elbow.add(finger)}const thumb=ball(.013,side*.031,-.299,.009,skin,elbow);thumb.scale.y=1.8;if(side===1)cyl(.036,.036,.014,0,-.25,0,red,elbow);arms.push({side,shoulder,elbow,hand})}
 function segment(mesh,a,b){mesh.position.copy(a).add(b).multiplyScalar(.5);mesh.scale.y=a.distanceTo(b)/.4;mesh.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),b.clone().sub(a).normalize())}
-function solveLeg(l,foot,hipY){const a=new T.Vector3(l.side*.13,hipY,0),b=new T.Vector3(foot.x??l.side*.14,foot.y,foot.z),d=b.clone().sub(a),len=Math.min(d.length(),.815),mid=a.clone().add(b).multiplyScalar(.5),bend=new T.Vector3(0,-d.z,d.y).normalize().negate();const k=mid.add(bend.multiplyScalar(Math.sqrt(Math.max(0,.415*.415-len*len/4))));l.hip.position.copy(a);l.knee.position.copy(k);segment(l.thigh,a,k);segment(l.shin,k,b);l.foot.position.copy(b);l.foot.position.z+=.065}
+function solveLeg(l,foot,hipY){const a=new T.Vector3(l.side*.13,hipY,0),b=new T.Vector3(foot.x??l.side*.14,foot.y,foot.z),d=b.clone().sub(a),len=Math.min(d.length(),.815),mid=a.clone().add(b).multiplyScalar(.5),bend=new T.Vector3(0,-d.z,d.y).normalize().negate();const k=mid.add(bend.multiplyScalar(Math.sqrt(Math.max(0,.415*.415-len*len/4))));shapeLeg(l.trouser,a,k,b);l.foot.position.copy(b);l.foot.position.z+=.065}
 // The cat is the room's navigation character. Its paws and body share one
 // locomotion clock, while its face, ears and tail move on separate cycles.
 const fur=new T.MeshStandardMaterial({color:'#ecebe5',roughness:.96}),furLight=new T.MeshStandardMaterial({color:'#fffdf4',roughness:1}),furStripe=new T.MeshStandardMaterial({color:'#c9cbc7',roughness:.96});
@@ -290,20 +298,20 @@ function updateMotion(){ $('#motion').setAttribute('aria-pressed',String(reduced
 let dragging=false,lastX=0,lastY=0;renderer.domElement.addEventListener('pointerdown',e=>{dragging=true;lastX=e.clientX;lastY=e.clientY;renderer.domElement.setPointerCapture(e.pointerId)});renderer.domElement.addEventListener('pointermove',e=>{if(dragging){camYaw=T.MathUtils.clamp(camYaw-(e.clientX-lastX)*.003,-.9,.9);camPitch=T.MathUtils.clamp(camPitch+(e.clientY-lastY)*.002,-.2,.2);lastX=e.clientX;lastY=e.clientY}});renderer.domElement.addEventListener('pointerup',()=>dragging=false);renderer.domElement.addEventListener('pointercancel',()=>dragging=false);
 function resize(){renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.fov=innerWidth<760?75:58;camera.updateProjectionMatrix()}addEventListener('resize',resize);
 // Human activity controller: seated -> stand -> walk -> look -> play -> return.
-let humanState='CODING',humanClock=0,humanRoute=[],humanStep=0,humanDistance=0,humanSpeed=0,humanHip=.8,humanReturn=false,humanPetClock=0;
+let humanState='CODING',humanClock=0,humanRoute=[],humanStep=0,humanDistance=0,humanSpeed=0,humanHip=.8,humanReturn=false,humanPetClock=0,humanBreakCount=0;
 const deskHome=new T.Vector3(-1.6,0,-.83),standingHome=new T.Vector3(-1.6,0,-.12);
 const plantedFeet=limbs.map(()=>new T.Vector3()),swingStarts=limbs.map(()=>new T.Vector3()),swingEnds=limbs.map(()=>new T.Vector3());let humanAnchored=false,footSwing=[false,false];
 function humanSet(next){humanState=next;humanClock=0;humanPetClock=0;humanAnchored=false;humanSpeed=0}
-function startHumanBreak(){if(humanState!=='CODING'||footballActive||catRoutePurpose==='LAP'&&catState!=='IDLE')return;humanSet('TURN');$('#status').textContent='Sagar is taking a short break'}
+function startHumanBreak(){if(humanState!=='CODING'||footballActive||catRoutePurpose==='LAP'&&catState!=='IDLE')return;humanBreakCount++;humanSet('TURN');$('#status').textContent='Sagar is taking a short break'}
 function humanWalk(points,returning=false){humanRoute=points.map(p=>new T.Vector3(p[0],0,p[1]));humanStep=0;humanReturn=returning;humanSet('WALK')}
 function humanYawTo(target,dt){developerYaw+=T.MathUtils.clamp(Math.atan2(Math.sin(target-developerYaw),Math.cos(target-developerYaw)),-dt*2.5,dt*2.5)}
 function updateHuman(dt,time){
  humanClock+=dt;const smooth=(a,b)=>T.MathUtils.smoothstep(humanClock,a,b);
- if(humanState==='CODING'&&humanClock>32&&!reduced&&!catGoal&&!footballActive&&catPos.y===0)startHumanBreak();
+ if(humanState==='CODING'&&humanClock>14+(humanBreakCount%3)*2&&!reduced&&!catGoal&&!footballActive&&catPos.y===0)startHumanBreak();
  if(humanState==='TURN'){humanYawTo(0,dt);chair.rotation.y=developerYaw-Math.PI;if(humanClock>1.5)humanSet('STAND')}
- if(humanState==='STAND'){const u=smooth(0,1.7);pos.lerpVectors(deskHome,standingHome,u);humanHip=T.MathUtils.lerp(.8,.87,u);if(humanClock>1.7)humanWalk([[-.6,.4],[2,.4],[3.85,-.55]])}
+ if(humanState==='STAND'){const u=smooth(0,1.7);pos.lerpVectors(deskHome,standingHome,u);humanHip=T.MathUtils.lerp(.8,.87,u);if(humanClock>1.7)humanWalk(humanBreakCount%2?[[-.6,.4],[2,.4],[3.85,-.55]]:[[-.6,.4],[2,.4]])}
  if(humanState==='WALK'){const target=humanRoute[humanStep];if(target){const delta=target.clone().sub(pos),distance=delta.length(),yaw=Math.atan2(delta.x,delta.z);humanYawTo(yaw,dt);const error=Math.abs(Math.atan2(Math.sin(yaw-developerYaw),Math.cos(yaw-developerYaw)));const desired=Math.min(.66,distance*2)*Math.max(0,1-error/1.1);humanSpeed=T.MathUtils.damp(humanSpeed,desired,5,dt);const move=Math.min(distance,humanSpeed*dt);pos.addScaledVector(delta.normalize(),move);humanDistance+=move;if(distance<.028)humanStep++}else{if(humanReturn)humanSet('SIT_DOWN');else if(pos.x>3)humanSet('WINDOW');else humanSet('PLAY')}}
- if(humanState==='WINDOW'){humanYawTo(Math.PI/2,dt);if(humanClock>6)humanWalk([[2,.4]])}
+ if(humanState==='WINDOW'){humanYawTo(Math.PI/2,dt);if(humanClock>4.5)humanWalk([[2,.4]])}
  if(humanState==='PLAY'){humanYawTo(0,dt);if(catRoutePurpose!=='HUMAN'&&!catGoal&&catPos.y===0&&['IDLE','ROAM','LOOK','SNIFF','SIT'].includes(catState))catWalkTo(2.23,.78,'ROAM','HUMAN');if(catState==='HUMAN_REST')humanPetClock+=dt;if(humanPetClock>6||humanClock>30)humanWalk([[-.6,.4],[-1.6,-.12]],true)}
  if(humanState==='SIT_DOWN'){humanYawTo(0,dt);const u=smooth(.3,2);pos.lerpVectors(standingHome,deskHome,u);humanHip=T.MathUtils.lerp(.87,.8,u);if(humanClock>2)humanSet('TURN_BACK')}
  if(humanState==='TURN_BACK'){humanYawTo(Math.PI,dt);chair.rotation.y=developerYaw-Math.PI;if(humanClock>1.6){humanSet('CODING');pos.copy(deskHome)}}
@@ -311,7 +319,7 @@ function updateHuman(dt,time){
  const social=seated&&(footballActive||catRoutePurpose==='LAP'&&['ROAM','NOTICE','CROUCH','PUSH_OFF','JUMP','LANDING','PERCH'].includes(catState));
  if(seated){developerYaw=T.MathUtils.damp(developerYaw,social?0:Math.PI,3,dt);chair.rotation.y=developerYaw-Math.PI;humanHip=.8}
  else if(!['STAND','SIT_DOWN','TURN','TURN_BACK'].includes(humanState))humanHip=T.MathUtils.damp(humanHip,petting?.48:.87,4,dt);
- robot.position.copy(pos);robot.rotation.y=developerYaw;torso.position.y=humanHip+Math.sin(time*1.8)*.003;torso.rotation.x=petting?.42:humanState==='STAND'?Math.sin(smooth(0,1.7)*Math.PI)*.28:seated?.11:.025;
+ human.position.copy(pos);human.rotation.y=developerYaw;torso.position.y=humanHip+Math.sin(time*1.8)*.003;torso.rotation.x=petting?.42:humanState==='STAND'?Math.sin(smooth(0,1.7)*Math.PI)*.28:seated?.11:.025;
  torso.rotation.z=walking?Math.sin(humanDistance/.85*Math.PI*2)*.016:0;head.rotation.y=humanState==='WINDOW'?Math.sin(time*.4)*.12:Math.sin(time*.35)*.06;head.rotation.x=petting?.24:seated?.1:0;
  for(let i=0;i<limbs.length;i++){
  const leg=limbs[i],cycle=(humanDistance/.86+i*.5)%1;
@@ -325,7 +333,7 @@ function updateHuman(dt,time){
  solveLeg(leg,foot,humanHip);
  }
  humanAnchored=walking;
- for(const arm of arms){arm.shoulder.rotation.z=arm.side*.08;arm.shoulder.rotation.x=seated?-1:walking?Math.sin(humanDistance/.86*Math.PI*2+arm.side*Math.PI/2)*.23:0;arm.elbow.rotation.x=seated?-1.1:-.12;arm.hand.rotation.x=seated&&!reduced?Math.sin(time*15+arm.side)*.10:0;if(social){arm.shoulder.rotation.x=-.25;arm.elbow.rotation.x=-.85}if(petting&&arm.side===1){arm.shoulder.rotation.x=-.4+Math.sin(time*2.3)*.045;arm.elbow.rotation.x=-.2;arm.hand.rotation.x=Math.sin(time*2.3)*.09}}
+ for(const arm of arms){const previousShoulder=arm.shoulder.rotation.x,previousElbow=arm.elbow.rotation.x;arm.shoulder.rotation.z=arm.side*.08;arm.shoulder.rotation.x=seated?-1:walking?Math.sin(humanDistance/.86*Math.PI*2+arm.side*Math.PI/2)*.23:0;arm.elbow.rotation.x=seated?-1.1:-.12;arm.hand.rotation.x=seated&&!reduced?Math.sin(time*15+arm.side)*.10:0;if(social){arm.shoulder.rotation.x=-.25;arm.elbow.rotation.x=-.85}if(petting&&arm.side===1){arm.shoulder.rotation.x=-.4+Math.sin(time*2.3)*.045;arm.elbow.rotation.x=-.2;arm.hand.rotation.x=Math.sin(time*2.3)*.09}arm.shoulder.rotation.x=T.MathUtils.damp(previousShoulder,arm.shoulder.rotation.x,6,dt);arm.elbow.rotation.x=T.MathUtils.damp(previousElbow,arm.elbow.rotation.x,6,dt)}
 }
 const breakButton=document.createElement('button');breakButton.textContent='Take a break';breakButton.onclick=startHumanBreak;$('.controls').append(breakButton);
 let last=performance.now(),time=0,lastCode=-1;
