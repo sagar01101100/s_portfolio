@@ -96,27 +96,23 @@ const clock=new T.Group();clock.position.set(-3.65,3.48,-3.23);scene.add(clock);
 box(.3,.018,.41,-2.48,1.438,-2.15,mats.ivory);for(let i=0;i<5;i++)box(.2,.002,.005,-2.48,1.45,-2.25+i*.04,mats.dark);box(.14,.018,.26,-.34,1.44,-1.58,mats.black);box(.11,.004,.21,-.34,1.452,-1.58,mats.glow);
 // Humanoid: articulated segments driven by planted-foot two-bone IK.
 const robot=new T.Group();scene.add(robot);let pos=new T.Vector3(-1.6,0,-.83),heading=Math.PI,hipHeight=.91;
-// A human-inspired android: face, hair, rounded jacket, articulated hands and sneakers.
-// Stylized likeness based on the supplied portrait: swept black hair, moustache,
-// short beard, open black hoodie, pale football shirt with red trim, and blue jeans.
-const skin=new T.MeshStandardMaterial({color:'#b98665',roughness:.62});
-const hair=new T.MeshStandardMaterial({color:'#191c20',roughness:.86});
-const fabric=new T.MeshStandardMaterial({color:'#13191f',roughness:.87});
-const pants=new T.MeshStandardMaterial({color:'#244a70',roughness:.92});
+// Articulated portrait-inspired model: linen kurta, denim and swept black hair.
+const skin=new T.MeshStandardMaterial({color:'#b4866c',roughness:.72});
+const hair=new T.MeshStandardMaterial({color:'#191a1a',roughness:.9});
+const fabric=new T.MeshStandardMaterial({color:'#e1e3df',roughness:.98});
+const pants=new T.MeshStandardMaterial({color:'#414e5f',roughness:.96});
+const shirt=fabric,red=new T.MeshStandardMaterial({color:'#bb483d',roughness:1});
 const torso=new T.Group();robot.add(torso);
-const chest=ball(.25,0,.23,0,fabric,torso);chest.scale.set(.94,1.28,.59);
+// Shaped continuous shirt silhouette, rather than separate jacket panels.
+const profile=[[-.13,.20],[0,.19],[.13,.20],[.29,.235],[.4,.23],[.46,.14]].map(([y,r])=>new T.Vector2(r,y));
+const chest=new T.Mesh(new T.LatheGeometry(profile,40),fabric);chest.scale.z=.65;torso.add(chest);
 const waist=ball(.19,0,-.005,0,pants,torso);waist.scale.set(1.04,.75,.7);
-const shirt=new T.MeshStandardMaterial({color:'#dce3e6',roughness:.9});const red=new T.MeshStandardMaterial({color:'#da2640',roughness:.78});
-const shirtPanel=ball(.2,0,.24,.093,shirt,torso);shirtPanel.scale.set(.78,1.43,.36);
-for(let side of [-1,1]){const openJacket=ball(.12,side*.165,.235,.07,fabric,torso);openJacket.scale.set(.65,2.55,.7);line([side*.075,.48,.15],[side*.155,.05,.145],.008,mats.ivory,torso)}
-const neckTrim=new T.Mesh(new T.TorusGeometry(.071,.009,8,24,Math.PI),red);neckTrim.position.set(0,.46,.15);neckTrim.rotation.z=Math.PI;torso.add(neckTrim);
-box(.107,.015,.008,0,.28,.167,red,torso);box(.022,.13,.008,0,.22,.17,red,torso);for(let side of [-1,1])box(.015,.018,.008,side*.069,.192,.162,red,torso);
-const crest=cyl(.024,.024,.008,-.071,.374,.155,red,torso);crest.rotation.x=Math.PI/2;
-const hood=ball(.145,0,.43,-.08,fabric,torso);hood.scale.set(1.35,.65,.67);
-
+for(const side of [-1,1]){const collar=box(.085,.11,.018,side*.053,.445,.079,fabric,torso);collar.rotation.z=side*.3;line([side*.17,-.10,.08],[side*.20,.30,.09],.003,new T.MeshStandardMaterial({color:'#c8ceca'}),torso)}
+const placket=box(.026,.26,.008,0,.30,.15,fabric,torso);for(const y of [.23,.31,.39]){const button=ball(.008,0,y,.158,mats.dark,torso);button.scale.z=.4}
+for(let i=0;i<5;i++){const fold=box(.13,.005,.006,(i%2?1:-1)*.055,-.065+i*.045,.133,fabric,torso);fold.rotation.z=(i%2?1:-1)*.08}
 cyl(.065,.075,.12,0,.51,0,skin,torso);
 const head=new T.Group();head.position.y=.665;torso.add(head);
-const skull=ball(.163,0,0,0,skin,head);skull.scale.set(.84,1.24,.91);
+const skull=ball(.163,0,0,0,skin,head);skull.scale.set(.82,1.18,.94);
 const jaw=ball(.104,0,-.087,.029,skin,head);jaw.scale.set(1,.8,.9);
 const hairCap=new T.Mesh(new T.SphereGeometry(.169,24,16,0,Math.PI*2,0,Math.PI*.56),hair);hairCap.position.y=.044;hairCap.scale.set(.91,1.08,1);head.add(hairCap);
 for(let i=0;i<10;i++){const tuft=ball(.047,-.115+i*.024,.16+Math.sin(i*.43)*.035,.065,hair,head);tuft.scale.set(.65,1.35,1);tuft.rotation.z=-.45}
@@ -126,12 +122,10 @@ const beard=ball(.079,0,-.143,.057,hair,head);beard.scale.set(1,.65,.9);
 for(let x of [-.058,.058]){const eye=ball(.022,x,.018,.134,mats.ivory,head);eye.scale.set(1,.57,.43);ball(.009,x,.018,.146,mats.black,head);const brow=box(.047,.009,.012,x,.05,.14,hair,head);brow.rotation.z=x>0?-.07:.07;ball(.025,Math.sign(x)*.146,-.005,0,skin,head)}
 const nose=ball(.027,0,-.015,.146,skin,head);nose.scale.set(.55,1.2,1.05);
 box(.046,.007,.006,0,-.076,.129,new T.MeshStandardMaterial({color:'#624636'}),head);
-// Subtle android temple details retain the original character concept.
-box(.024,.04,.017,-.137,.036,.025,mats.metal,head);box(.005,.023,.019,-.151,.036,.025,mats.glow,head);
-const limbs=[];for(let side of [-1,1]){const hip=ball(.075,0,0,0,pants,robot),knee=ball(.065,0,0,0,pants,robot),thigh=cyl(.089,.073,.4,0,0,0,pants,robot),shin=cyl(.07,.048,.4,0,0,0,pants,robot),foot=box(.145,.09,.27,0,0,0,mats.ivory,robot);box(.146,.027,.28,0,-.04,0,mats.dark,foot);box(.1,.012,.075,0,.048,.022,mats.dark,foot);limbs.push({side,hip,knee,thigh,shin,foot})}
-const arms=[];for(let side of [-1,1]){const shoulder=new T.Group();shoulder.position.set(side*.235,.38,0);torso.add(shoulder);ball(.082,0,0,0,fabric,shoulder);cyl(.073,.054,.28,0,-.16,0,fabric,shoulder);const elbow=new T.Group();elbow.position.y=-.31;shoulder.add(elbow);ball(.055,0,0,0,fabric,elbow);cyl(.051,.034,.26,0,-.14,0,fabric,elbow);const hand=ball(.05,0,-.3,0,skin,elbow);hand.scale.set(.8,1.3,.5);for(let j=0;j<4;j++){const finger=cyl(.009,.007,.062,-.026+j*.018,-.357,.007,skin,elbow);finger.rotation.x=-.15}ball(.015,side*.04,-.301,.013,skin,elbow);if(side===1)cyl(.039,.039,.025,0,-.267,0,red,elbow);arms.push({side,shoulder,elbow,hand})}
+const limbs=[];for(let side of [-1,1]){const hip=ball(.075,0,0,0,pants,robot),knee=ball(.065,0,0,0,pants,robot),thigh=cyl(.089,.073,.4,0,0,0,pants,robot),shin=cyl(.07,.048,.4,0,0,0,pants,robot),foot=box(.145,.09,.27,0,0,0,mats.dark,robot);box(.146,.027,.28,0,-.04,0,mats.dark,foot);box(.1,.012,.075,0,.048,.022,mats.dark,foot);limbs.push({side,hip,knee,thigh,shin,foot})}
+const arms=[];for(let side of [-1,1]){const shoulder=new T.Group();shoulder.position.set(side*.235,.38,0);torso.add(shoulder);ball(.082,0,0,0,fabric,shoulder);cyl(.073,.054,.28,0,-.16,0,fabric,shoulder);const elbow=new T.Group();elbow.position.y=-.31;shoulder.add(elbow);ball(.055,0,0,0,fabric,elbow);cyl(.051,.034,.26,0,-.14,0,skin,elbow);cyl(.057,.058,.072,0,-.045,0,fabric,elbow);const hand=ball(.05,0,-.3,0,skin,elbow);hand.scale.set(.8,1.3,.5);for(let j=0;j<4;j++){const finger=cyl(.009,.007,.062,-.026+j*.018,-.357,.007,skin,elbow);finger.rotation.x=-.15}ball(.015,side*.04,-.301,.013,skin,elbow);if(side===1)cyl(.039,.039,.025,0,-.267,0,red,elbow);arms.push({side,shoulder,elbow,hand})}
 function segment(mesh,a,b){mesh.position.copy(a).add(b).multiplyScalar(.5);mesh.scale.y=a.distanceTo(b)/.4;mesh.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),b.clone().sub(a).normalize())}
-function solveLeg(l,foot,hipY){const a=new T.Vector3(l.side*.13,hipY,0),b=new T.Vector3(l.side*.14,foot.y,foot.z),d=b.clone().sub(a),len=Math.min(d.length(),.815),mid=a.clone().add(b).multiplyScalar(.5),bend=new T.Vector3(0,-d.z,d.y).normalize().negate();const k=mid.add(bend.multiplyScalar(Math.sqrt(Math.max(0,.415*.415-len*len/4))));l.hip.position.copy(a);l.knee.position.copy(k);segment(l.thigh,a,k);segment(l.shin,k,b);l.foot.position.copy(b);l.foot.position.z+=.065}
+function solveLeg(l,foot,hipY){const a=new T.Vector3(l.side*.13,hipY,0),b=new T.Vector3(foot.x??l.side*.14,foot.y,foot.z),d=b.clone().sub(a),len=Math.min(d.length(),.815),mid=a.clone().add(b).multiplyScalar(.5),bend=new T.Vector3(0,-d.z,d.y).normalize().negate();const k=mid.add(bend.multiplyScalar(Math.sqrt(Math.max(0,.415*.415-len*len/4))));l.hip.position.copy(a);l.knee.position.copy(k);segment(l.thigh,a,k);segment(l.shin,k,b);l.foot.position.copy(b);l.foot.position.z+=.065}
 // The cat is the room's navigation character. Its paws and body share one
 // locomotion clock, while its face, ears and tail move on separate cycles.
 const fur=new T.MeshStandardMaterial({color:'#ecebe5',roughness:.96}),furLight=new T.MeshStandardMaterial({color:'#fffdf4',roughness:1}),furStripe=new T.MeshStandardMaterial({color:'#c9cbc7',roughness:.96});
@@ -188,7 +182,7 @@ catLegs.forEach(l=>{l.planted=new T.Vector3();l.swingFrom=new T.Vector3();l.swin
 function catSetState(next){catState=next;catClock=0;catLegs.forEach(l=>l.anchored=false)}
 function catWalkTo(x,z,stateName='WALK',purpose='LINK'){const raw=pathTo(x,z,catPos);if(!raw)return false;catRoute=raw.filter((p,i,a)=>i===a.length-1||i===0||!p.clone().sub(a[i-1]).normalize().equals(a[i+1].clone().sub(p).normalize()));catWaypoint=0;catRoutePurpose=purpose;catSetState(stateName);return true}
 function catNavigate(key){catGoal=key;catExpression='curious';if(!catWalkTo(destinations[key].x,-2.07)){$('#status').textContent='The cat cannot reach that shelf item';catGoal=null;catSetState('IDLE');return}$('#status').textContent='The cat is going to '+destinations[key].label}
-function catRequest(key){if(catState==='READING'){catQueued=key;if(panelEl.open)panelEl.close();return}if(['IDLE','ROAM','SNIFF','STRETCH','SIT','LOOK','AFFECTION'].includes(catState)&&catPos.y===0||catState==='WALK'&&catPos.y===0){catQueued=null;catNavigate(key);return}catQueued=key;$('#status').textContent='The cat will visit '+destinations[key].label+' next'}
+function catRequest(key){if(catState==='READING'){catQueued=key;if(panelEl.open)panelEl.close();return}if(['IDLE','ROAM','SNIFF','STRETCH','SIT','LOOK','AFFECTION','HUMAN_REST'].includes(catState)&&catPos.y===0||catState==='WALK'&&catPos.y===0){catQueued=null;catNavigate(key);return}catQueued=key;$('#status').textContent='The cat will visit '+destinations[key].label+' next'}
 function beginJumpSequence(points,purpose){jumpPlan=points.map(p=>new T.Vector3(...p));catSequence=purpose;prepareNextJump()}
 function prepareNextJump(){jumpFrom.copy(catPos);jumpTo.copy(jumpPlan.shift());const rise=jumpTo.y-jumpFrom.y;const clearance=['LINK','RETURN'].includes(catSequence)?.32:rise>1?.23:rise>.2?.2:.12;jumpVelocity=Math.sqrt(2*gravity*(Math.max(rise,0)+clearance));jumpDuration=(jumpVelocity+Math.sqrt(jumpVelocity*jumpVelocity-2*gravity*rise))/gravity;flightClock=0;catExpression=rise<0?'cautious':'excited';catSetState('NOTICE')}
 // Stand on the supporting board at the box's base, beside its front face.
@@ -210,12 +204,12 @@ const tapRings=[0,1].map(()=>{const mesh=new T.Mesh(new T.RingGeometry(.031,.039
 function updateTapFeedback(){const active=catState==='TOUCH'&&catClock>=.78&&catClock<1.45&&catGoal;tapFeedback.visible=!!active;if(!active)return;const d=destinations[catGoal];tapFeedback.position.set(d.x+.136,d.y-.28,-2.493);tapRings.forEach((ring,i)=>{const t=T.MathUtils.clamp((catClock-.78-i*.13)/.54,0,1);ring.scale.setScalar(1+t*3.5);ring.material.opacity=t>0?(1-t)*.95:0})}
 function catFinishVisit(){catGoal=null;catSetState('IDLE');catWait=0;catExpression='relaxed';if(catQueued){const next=catQueued;catQueued=null;catNavigate(next)}else $('#status').textContent='Sagar is coding · the cat is exploring'}
 function finishJumpSequence(){if(catQueued){if(catPos.y>.05)catStartDown();else catFinishVisit();return}if(catSequence==='LINK')catSetState('TOUCH');else catFinishVisit()}
-function idleCatAction(){catWait=0;const n=catRoamIndex++%12;catGoal=null;if(n===0){catExpression='curious';catWalkTo(-3.95,-1.05,'ROAM','DESK')}else if(n===2){catExpression='playful';catSetState('STRETCH')}else if(n===4){catWalkTo(-.39,.75,'ROAM','FOOTBALL')}else if(n===6){catWalkTo(-1.6,.35,'ROAM','LAP')}else if(n===8){catWalkTo(-2.6,1.05,'ROAM','CHAIR')}else if(n===10){catExpression='relaxed';catSetState('SIT')}else{catExpression='curious';const [x,z]=roamSpots[n%roamSpots.length];catWalkTo(x,z,'ROAM','ROAM')}}
+function idleCatAction(){catWait=0;const n=catRoamIndex++%12;catGoal=null;if(n===0){catExpression='curious';catWalkTo(-3.95,-1.05,'ROAM','DESK')}else if(n===2){catExpression='playful';catSetState('STRETCH')}else if(n===4&&humanState==='CODING'){catWalkTo(-.39,.75,'ROAM','FOOTBALL')}else if(n===6&&humanState==='CODING'){catWalkTo(-1.6,.35,'ROAM','LAP')}else if(n===8){catWalkTo(-2.6,1.05,'ROAM','CHAIR')}else if(n===10){catExpression='relaxed';catSetState('SIT')}else{catExpression='curious';const [x,z]=roamSpots[n%roamSpots.length];catWalkTo(x,z,'ROAM','ROAM')}}
 function updateCat(dt,time){
- catClock+=dt;catWait+=dt;updateFootball(dt);
+ catClock+=dt;catWait+=dt;updateFootball(dt);if(catState==='HUMAN_REST'&&humanState!=='PLAY'){catSetState('IDLE');catWait=0;}
  if(catState==='IDLE'&&catWait>4.5&&!reduced)idleCatAction();
  const walking=catState==='WALK'||catState==='ROAM';
- if(walking){const target=catRoute[catWaypoint];if(target){const delta=target.clone().sub(catPos),distance=delta.length(),toward=Math.atan2(delta.x,delta.z),turn=Math.atan2(Math.sin(toward-catHeading),Math.cos(toward-catHeading));catHeading+=T.MathUtils.clamp(turn,-dt*3.3,dt*3.3);const final=catWaypoint===catRoute.length-1;let desired=Math.min(catGoal?.65:.4,final?distance*2.5:.75);if(Math.abs(turn)>.55)desired*=Math.max(0,1-Math.abs(turn)/1.35);catSpeed=T.MathUtils.lerp(catSpeed,desired,Math.min(1,dt*5));const moved=Math.min(distance,catSpeed*dt);catPos.addScaledVector(delta.normalize(),moved);catDistance+=moved/CAT_SCALE;if(distance<.025)catWaypoint++}else{catSpeed=0;if(catRoutePurpose==='LINK'){catStartClimb()}else if(catRoutePurpose==='CHAIR'){beginJumpSequence([[-3.55,.81,1.06],[-2.6,0,1.05]],'CHAIR')}else if(catRoutePurpose==='GAP'){beginJumpSequence([[catPos.x+.55,0,catPos.z]],'GAP')}else if(catRoutePurpose==='DESK'){beginJumpSequence([[-3.12,1.41,-1.59],[-3.04,1.41,-1.59],[-3.95,0,-1.05]],'DESK')}else if(catRoutePurpose==='LAP'){beginJumpSequence([[-1.6,.9,-.48],[-1.6,0,.35]],'LAP')}else if(catRoutePurpose==='FOOTBALL'){startFootball()}else if(catRoutePurpose==='CALL'){catExpression='affectionate';catSetState('AFFECTION')}else{catExpression='curious';catSetState('SNIFF')}}}
+ if(walking){const target=catRoute[catWaypoint];if(target){const delta=target.clone().sub(catPos),distance=delta.length(),toward=Math.atan2(delta.x,delta.z),turn=Math.atan2(Math.sin(toward-catHeading),Math.cos(toward-catHeading));catHeading+=T.MathUtils.clamp(turn,-dt*3.3,dt*3.3);const final=catWaypoint===catRoute.length-1;let desired=Math.min(catGoal?.65:.4,final?distance*2.5:.75);if(Math.abs(turn)>.55)desired*=Math.max(0,1-Math.abs(turn)/1.35);catSpeed=T.MathUtils.lerp(catSpeed,desired,Math.min(1,dt*5));const moved=Math.min(distance,catSpeed*dt);catPos.addScaledVector(delta.normalize(),moved);catDistance+=moved/CAT_SCALE;if(distance<.025)catWaypoint++}else{catSpeed=0;if(catRoutePurpose==='LINK'){catStartClimb()}else if(catRoutePurpose==='CHAIR'){beginJumpSequence([[-3.55,.81,1.06],[-2.6,0,1.05]],'CHAIR')}else if(catRoutePurpose==='GAP'){beginJumpSequence([[catPos.x+.55,0,catPos.z]],'GAP')}else if(catRoutePurpose==='DESK'){beginJumpSequence([[-3.12,1.41,-1.59],[-3.04,1.41,-1.59],[-3.95,0,-1.05]],'DESK')}else if(catRoutePurpose==='LAP'){beginJumpSequence([[-1.6,.9,-.48],[-1.6,0,.35]],'LAP')}else if(catRoutePurpose==='FOOTBALL'){startFootball()}else if(catRoutePurpose==='HUMAN'){catHeading=Math.PI;catExpression='affectionate';catSetState('HUMAN_REST')}else if(catRoutePurpose==='CALL'){catExpression='affectionate';catSetState('AFFECTION')}else{catExpression='curious';catSetState('SNIFF')}}}
  if(catState==='NOTICE'){const delta=jumpTo.clone().sub(catPos);if(Math.hypot(delta.x,delta.z)>.07){const goal=Math.atan2(delta.x,delta.z);catHeading+=Math.atan2(Math.sin(goal-catHeading),Math.cos(goal-catHeading))*Math.min(1,dt*6)}if(catClock>.28)catSetState('CROUCH')}
  if(catState==='CROUCH'&&catClock>.38)catSetState('PUSH_OFF');
  if(catState==='PUSH_OFF'&&catClock>.09){flightClock=0;catSetState('JUMP')}
@@ -240,7 +234,7 @@ function updateCat(dt,time){
  cat.position.copy(catPos);cat.rotation.y=catHeading;
  const jump=catState==='JUMP',flight=jump?flightClock/jumpDuration:0,pre=catState==='CROUCH'?T.MathUtils.smoothstep(catClock,0,.38):catState==='PUSH_OFF'?1-T.MathUtils.smoothstep(catClock,0,.09):0;
  const landing=catState==='LANDING'?Math.sin(Math.min(1,catClock/.3)*Math.PI):0;
- const sitting=catState==='SIT'||catState==='PERCH'&&['CHAIR','LAP'].includes(catSequence);
+ const sitting=catState==='HUMAN_REST'||catState==='SIT'||catState==='PERCH'&&['CHAIR','LAP'].includes(catSequence);
  const stretch=catState==='STRETCH'?Math.sin(Math.min(1,catClock/2.4)*Math.PI):0;
  catBody.position.y=-pre*.105-landing*.08-stretch*.025+(walking?Math.sin(catDistance/.54*Math.PI*4)*.006:Math.sin(time*1.9)*.003);
  catBody.rotation.x=jump?T.MathUtils.lerp(-.18,.22,flight):pre*.09+landing*.06+stretch*.13;
@@ -291,20 +285,54 @@ const panelEl=$('#panel');const state='CODING';let reduced=matchMedia('(prefers-
 // Furniture-aware paths for the cat, including both chairs.
 function pathTo(tx,tz,origin=pos){const step=.25,min=-4.5,max=4.5,zmin=-2.75,zmax=2.75;const snap=(x,z)=>[Math.round((x-min)/step),Math.round((z-zmin)/step)];const world=([x,z])=>new T.Vector3(min+x*step,0,zmin+z*step);const blocked=(x,z)=>(x>-3.8&&x<.55&&z>-2.95&&z<-1.23)||(x>.2&&x<4.2&&z<-2.15)||Math.hypot(x+1.6,z+.83)<.57||Math.hypot(x+3.55,z-1.12)<.59||(x<-3.65&&z>-.75&&z<.25)||(x>3.85&&z>1.1&&z<2.1);const start=snap(origin.x,origin.z),end=snap(tx,tz),key=a=>a.join(','),open=[start],came=new Map(),g=new Map([[key(start),0]]);let found=false;while(open.length){open.sort((a,b)=>(g.get(key(a))+Math.hypot(a[0]-end[0],a[1]-end[1]))-(g.get(key(b))+Math.hypot(b[0]-end[0],b[1]-end[1])));const a=open.shift();if(key(a)===key(end)){found=true;break}for(const [dx,dz]of [[1,0],[-1,0],[0,1],[0,-1]]){const b=[a[0]+dx,a[1]+dz],w=world(b);if(w.x<min||w.x>max||w.z<zmin||w.z>zmax||blocked(w.x,w.z))continue;const cost=g.get(key(a))+1;if(cost<(g.get(key(b))??Infinity)){came.set(key(b),a);g.set(key(b),cost);if(!open.some(q=>key(q)===key(b)))open.push(b)}}}if(!found)return null;const out=[];let node=end;while(key(node)!==key(start)){out.unshift(world(node));node=came.get(key(node))}out.push(new T.Vector3(tx,0,tz));return out}
 panelEl.querySelector('.close').onclick=()=>panelEl.close();panelEl.addEventListener('close',()=>{if(catState==='READING')catStartDown()});
-$('#think').textContent='◌  Call the cat';$('#think').onclick=()=>{if(catState==='IDLE'||catState==='ROAM')catWalkTo(-1.6,.35,'ROAM','LAP')};
+$('#think').textContent='◌  Call the cat';$('#think').onclick=()=>{if(catState==='IDLE'||catState==='ROAM'){if(humanState==='CODING')catWalkTo(-1.6,.35,'ROAM','LAP');else catWalkTo(pos.x+.4,pos.z+.4,'ROAM','CALL')}};
 function updateMotion(){ $('#motion').setAttribute('aria-pressed',String(reduced));$('#motion').textContent=reduced?'Motion: reduced':'Reduce motion'}updateMotion();$('#motion').onclick=()=>{reduced=!reduced;updateMotion()};$('#quality').onclick=()=>{const low=$('#quality').textContent.includes('high');renderer.setPixelRatio(low?1:Math.min(devicePixelRatio,2));renderer.shadowMap.enabled=!low;bodyFur.count=low?2200:6500;faceFur.count=low?600:1800;chestFur.count=low?300:900;$('#quality').textContent='Quality: '+(low?'low':'high')};$('#reset').onclick=()=>{camYaw=camPitch=0};
 let dragging=false,lastX=0,lastY=0;renderer.domElement.addEventListener('pointerdown',e=>{dragging=true;lastX=e.clientX;lastY=e.clientY;renderer.domElement.setPointerCapture(e.pointerId)});renderer.domElement.addEventListener('pointermove',e=>{if(dragging){camYaw=T.MathUtils.clamp(camYaw-(e.clientX-lastX)*.003,-.9,.9);camPitch=T.MathUtils.clamp(camPitch+(e.clientY-lastY)*.002,-.2,.2);lastX=e.clientX;lastY=e.clientY}});renderer.domElement.addEventListener('pointerup',()=>dragging=false);renderer.domElement.addEventListener('pointercancel',()=>dragging=false);
 function resize(){renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.fov=innerWidth<760?75:58;camera.updateProjectionMatrix()}addEventListener('resize',resize);
+// Human activity controller: seated -> stand -> walk -> look -> play -> return.
+let humanState='CODING',humanClock=0,humanRoute=[],humanStep=0,humanDistance=0,humanSpeed=0,humanHip=.8,humanReturn=false,humanPetClock=0;
+const deskHome=new T.Vector3(-1.6,0,-.83),standingHome=new T.Vector3(-1.6,0,-.12);
+const plantedFeet=limbs.map(()=>new T.Vector3()),swingStarts=limbs.map(()=>new T.Vector3()),swingEnds=limbs.map(()=>new T.Vector3());let humanAnchored=false,footSwing=[false,false];
+function humanSet(next){humanState=next;humanClock=0;humanPetClock=0;humanAnchored=false;humanSpeed=0}
+function startHumanBreak(){if(humanState!=='CODING'||footballActive||catRoutePurpose==='LAP'&&catState!=='IDLE')return;humanSet('TURN');$('#status').textContent='Sagar is taking a short break'}
+function humanWalk(points,returning=false){humanRoute=points.map(p=>new T.Vector3(p[0],0,p[1]));humanStep=0;humanReturn=returning;humanSet('WALK')}
+function humanYawTo(target,dt){developerYaw+=T.MathUtils.clamp(Math.atan2(Math.sin(target-developerYaw),Math.cos(target-developerYaw)),-dt*2.5,dt*2.5)}
+function updateHuman(dt,time){
+ humanClock+=dt;const smooth=(a,b)=>T.MathUtils.smoothstep(humanClock,a,b);
+ if(humanState==='CODING'&&humanClock>32&&!reduced&&!catGoal&&!footballActive&&catPos.y===0)startHumanBreak();
+ if(humanState==='TURN'){humanYawTo(0,dt);chair.rotation.y=developerYaw-Math.PI;if(humanClock>1.5)humanSet('STAND')}
+ if(humanState==='STAND'){const u=smooth(0,1.7);pos.lerpVectors(deskHome,standingHome,u);humanHip=T.MathUtils.lerp(.8,.87,u);if(humanClock>1.7)humanWalk([[-.6,.4],[2,.4],[3.85,-.55]])}
+ if(humanState==='WALK'){const target=humanRoute[humanStep];if(target){const delta=target.clone().sub(pos),distance=delta.length(),yaw=Math.atan2(delta.x,delta.z);humanYawTo(yaw,dt);const error=Math.abs(Math.atan2(Math.sin(yaw-developerYaw),Math.cos(yaw-developerYaw)));const desired=Math.min(.66,distance*2)*Math.max(0,1-error/1.1);humanSpeed=T.MathUtils.damp(humanSpeed,desired,5,dt);const move=Math.min(distance,humanSpeed*dt);pos.addScaledVector(delta.normalize(),move);humanDistance+=move;if(distance<.028)humanStep++}else{if(humanReturn)humanSet('SIT_DOWN');else if(pos.x>3)humanSet('WINDOW');else humanSet('PLAY')}}
+ if(humanState==='WINDOW'){humanYawTo(Math.PI/2,dt);if(humanClock>6)humanWalk([[2,.4]])}
+ if(humanState==='PLAY'){humanYawTo(0,dt);if(catRoutePurpose!=='HUMAN'&&!catGoal&&catPos.y===0&&['IDLE','ROAM','LOOK','SNIFF','SIT'].includes(catState))catWalkTo(2.23,.78,'ROAM','HUMAN');if(catState==='HUMAN_REST')humanPetClock+=dt;if(humanPetClock>6||humanClock>30)humanWalk([[-.6,.4],[-1.6,-.12]],true)}
+ if(humanState==='SIT_DOWN'){humanYawTo(0,dt);const u=smooth(.3,2);pos.lerpVectors(standingHome,deskHome,u);humanHip=T.MathUtils.lerp(.87,.8,u);if(humanClock>2)humanSet('TURN_BACK')}
+ if(humanState==='TURN_BACK'){humanYawTo(Math.PI,dt);chair.rotation.y=developerYaw-Math.PI;if(humanClock>1.6){humanSet('CODING');pos.copy(deskHome)}}
+ const seated=humanState==='CODING',walking=humanState==='WALK',petting=humanState==='PLAY'&&catRoutePurpose==='HUMAN'&&catPos.distanceTo(pos)<.8&&!catGoal;
+ const social=seated&&(footballActive||catRoutePurpose==='LAP'&&['ROAM','NOTICE','CROUCH','PUSH_OFF','JUMP','LANDING','PERCH'].includes(catState));
+ if(seated){developerYaw=T.MathUtils.damp(developerYaw,social?0:Math.PI,3,dt);chair.rotation.y=developerYaw-Math.PI;humanHip=.8}
+ else if(!['STAND','SIT_DOWN','TURN','TURN_BACK'].includes(humanState))humanHip=T.MathUtils.damp(humanHip,petting?.48:.87,4,dt);
+ robot.position.copy(pos);robot.rotation.y=developerYaw;torso.position.y=humanHip+Math.sin(time*1.8)*.003;torso.rotation.x=petting?.42:humanState==='STAND'?Math.sin(smooth(0,1.7)*Math.PI)*.28:seated?.11:.025;
+ torso.rotation.z=walking?Math.sin(humanDistance/.85*Math.PI*2)*.016:0;head.rotation.y=humanState==='WINDOW'?Math.sin(time*.4)*.12:Math.sin(time*.35)*.06;head.rotation.x=petting?.24:seated?.1:0;
+ for(let i=0;i<limbs.length;i++){
+ const leg=limbs[i],cycle=(humanDistance/.86+i*.5)%1;
+ let foot={x:leg.side*.14,z:seated||humanState==='TURN'||humanState==='TURN_BACK'?.4:0,y:.085};
+ if(walking){const ground=(forward)=>new T.Vector3(leg.side*.14,.085,forward).applyAxisAngle(axisY,developerYaw).add(pos);if(!humanAnchored){plantedFeet[i].copy(ground(0));footSwing[i]=false}
+ if(cycle>.6){if(!footSwing[i]){swingStarts[i].copy(plantedFeet[i]);swingEnds[i].copy(ground(.23));footSwing[i]=true}const u=(cycle-.6)/.4;plantedFeet[i].lerpVectors(swingStarts[i],swingEnds[i],T.MathUtils.smoothstep(u,0,1));plantedFeet[i].y=.085+Math.sin(u*Math.PI)*.085}else footSwing[i]=false;
+ const local=plantedFeet[i].clone().sub(pos).applyAxisAngle(axisY,-developerYaw);if(Math.abs(local.z)>.32){plantedFeet[i].copy(ground(0));local.set(leg.side*.14,.085,0)}foot={x:local.x,y:local.y,z:local.z};}
+ if(humanState==='STAND')foot.z=.4*(1-smooth(0,1.7));if(humanState==='SIT_DOWN')foot.z=.4*smooth(.3,2);
+ if(petting)foot.z=leg.side===1?.22:-.13;
+ const kick=seated&&footballActive&&leg.side===1?Math.max(0,1-Math.abs(footballClock%5.2-.8)/.3):0;foot.z+=kick*.18;foot.y+=kick*.085;
+ solveLeg(leg,foot,humanHip);
+ }
+ humanAnchored=walking;
+ for(const arm of arms){arm.shoulder.rotation.z=arm.side*.08;arm.shoulder.rotation.x=seated?-1:walking?Math.sin(humanDistance/.86*Math.PI*2+arm.side*Math.PI/2)*.23:0;arm.elbow.rotation.x=seated?-1.1:-.12;arm.hand.rotation.x=seated&&!reduced?Math.sin(time*15+arm.side)*.10:0;if(social){arm.shoulder.rotation.x=-.25;arm.elbow.rotation.x=-.85}if(petting&&arm.side===1){arm.shoulder.rotation.x=-.4+Math.sin(time*2.3)*.045;arm.elbow.rotation.x=-.2;arm.hand.rotation.x=Math.sin(time*2.3)*.09}}
+}
+const breakButton=document.createElement('button');breakButton.textContent='Take a break';breakButton.onclick=startHumanBreak;$('.controls').append(breakButton);
 let last=performance.now(),time=0,lastCode=-1;
 function animate(now){requestAnimationFrame(animate);const dt=Math.min((now-last)/1000,.05);last=now;time+=dt;
 updateCat(dt,time);
-// Turn the chair toward the room for lap visits and a short passing game.
-const social=footballActive||catRoutePurpose==='LAP'&&['ROAM','NOTICE','CROUCH','PUSH_OFF','JUMP','LANDING','PERCH'].includes(catState);
-developerYaw=T.MathUtils.damp(developerYaw,social?0:Math.PI,3,dt);chair.rotation.y=developerYaw-Math.PI;
-robot.position.copy(pos);robot.rotation.y=developerYaw;torso.position.y=.8+Math.sin(time*1.8)*.003;torso.rotation.x=.11;head.rotation.y=Math.sin(time*.35)*.1;head.rotation.x=.1;
-for(const leg of limbs){const phase=footballClock%5.2,kick=footballActive&&leg.side===1?Math.max(0,1-Math.abs(phase-.8)/.3):0;solveLeg(leg,{z:.4+kick*.18,y:.075+kick*.085},.8)}
-for(const arm of arms){arm.shoulder.rotation.x=-1;arm.shoulder.rotation.z=arm.side*.1;arm.elbow.rotation.x=-1.1;arm.hand.rotation.x=reduced?0:Math.sin(time*15+arm.side)*.13;if(social){arm.shoulder.rotation.x=-.25;arm.elbow.rotation.x=-.85;arm.hand.rotation.x=Math.sin(time*2)*.08}}
-if(!reduced){fans.forEach(f=>f.rotation.z+=dt*5);leaves.forEach((l,i)=>l.rotation.x=Math.sin(time*.7+i)*.035);keys.forEach((k,i)=>k.position.y=1.478-(state==='CODING'&&Math.sin(time*12+i*1.3)>.93?.009:0));blue.intensity=14+Math.sin(time*.7)}
+updateHuman(dt,time);
+if(!reduced){fans.forEach(f=>f.rotation.z+=dt*5);leaves.forEach((l,i)=>l.rotation.x=Math.sin(time*.7+i)*.035);keys.forEach((k,i)=>k.position.y=1.478-(humanState==='CODING'&&Math.sin(time*12+i*1.3)>.93?.009:0));blue.intensity=14+Math.sin(time*.7)}
 const sec=Math.floor(time*2);if(sec!==lastCode){lastCode=sec;const c=code.ctx;c.fillStyle='#101d28';c.fillRect(0,0,1024,640);c.fillStyle='#263943';c.fillRect(0,0,1024,58);c.font='23px monospace';c.fillStyle='#bececc';c.fillText('●  ●  ●      workspace / developer.ts',30,37);const snippet=snippets[Math.floor(time/20)%snippets.length],lines=Math.min(snippet.length,4+Math.floor(time%20));c.font='24px monospace';snippet.slice(0,lines).forEach((s,i)=>{c.fillStyle='#617779';c.fillText(String(i+1).padStart(2),20,105+i*39);c.fillStyle=s.startsWith('//')?'#77998c':s.includes('return')?'#dcb88c':'#a9c7d6';c.fillText(s,80,105+i*39)});if(sec%2)c.fillRect(82,120+(lines-1)*39,12,3);code.tex.needsUpdate=true}
 const date=new Date();hour.rotation.z=-(date.getHours()%12+date.getMinutes()/60)*Math.PI/6;minute.rotation.z=-date.getMinutes()*Math.PI/30;
 const mobile=innerWidth<760;
