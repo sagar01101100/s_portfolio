@@ -11,8 +11,10 @@ function cyl(r1,r2,h,x,y,z,mat,parent=scene){const m=new T.Mesh(new T.CylinderGe
 function line(a,b,r,mat,parent=scene){const va=new T.Vector3(...a),vb=new T.Vector3(...b),v=vb.clone().sub(va),m=cyl(r,r,v.length(),0,0,0,mat,parent);m.position.copy(va.add(vb).multiplyScalar(.5));m.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),v.normalize());return m}
 function texture(draw,w=1024,h=640){const c=document.createElement('canvas');c.width=w;c.height=h;const ctx=c.getContext('2d');draw(ctx,w,h);const tex=new T.CanvasTexture(c);tex.colorSpace=T.SRGBColorSpace;return {tex,ctx,c}}
 function panel(w,h,x,y,z,tex,rotation=0){const g=new T.Group();g.position.set(x,y,z);g.rotation.y=rotation;scene.add(g);box(w+.08,h+.08,.09,0,0,0,mats.dark,g);const m=new T.Mesh(new T.PlaneGeometry(w,h),new T.MeshBasicMaterial({map:tex}));m.position.z=.052;g.add(m);return g}
-const floor=box(10,.2,7,0,-.1,0,new T.MeshStandardMaterial({color:'#434c53',roughness:.6}));
-for(let x=-5;x<5;x+=.65)box(.012,.007,7,x,.004,0,new T.MeshStandardMaterial({color:'#29333c'}));
+const floor=box(10,.2,7,0,-.1,0,new T.MeshStandardMaterial({color:'#22292c',roughness:.4}));
+const chessLight=new T.MeshStandardMaterial({color:'#e4dcc9',roughness:.44}),chessDark=new T.MeshStandardMaterial({color:'#293338',roughness:.38});
+const chessTiles=[];for(let rank=0;rank<8;rank++)for(let file=0;file<8;file++){const tile=box(.848,.008,.848,-2.975+file*.85,.004,-2.975+rank*.85,(rank+file)%2?chessLight:chessDark);tile.name=`chess-${String.fromCharCode(97+file)}${8-rank}`;chessTiles.push(tile)}
+for(const side of [-1,1]){box(.025,.01,6.84,side*3.415,.006,0,mats.gold);box(6.84,.01,.025,0,.006,side*3.415,mats.gold)}
 const wall=new T.MeshStandardMaterial({color:'#263440',roughness:.83});
 box(10,4.8,.16,0,2.3,-3.5,wall);box(.16,4.8,7,-5,2.3,0,wall);
 box(10,.12,7,0,4.72,0,wall);
@@ -101,114 +103,19 @@ const leaves=[];for(let [x,z,size] of [[4.25,1.6,1],[-4.1,-.25,.8]]){cyl(.22*siz
 const clock=new T.Group();clock.position.set(-3.65,3.48,-3.23);scene.add(clock);const face=cyl(.24,.24,.045,0,0,0,mats.ivory,clock);face.rotation.x=Math.PI/2;const hour=box(.018,.13,.015,0,.055,.04,mats.black,clock),minute=box(.012,.19,.015,0,.075,.05,mats.black,clock);
 box(.3,.018,.41,-2.48,1.438,-2.15,mats.ivory);for(let i=0;i<5;i++)box(.2,.002,.005,-2.48,1.45,-2.25+i*.04,mats.dark);box(.14,.018,.26,-.34,1.44,-1.58,mats.black);box(.11,.004,.21,-.34,1.452,-1.58,mats.glow);
 // Human character with continuous deforming clothing and planted-foot IK.
-const human=new T.Group();scene.add(human);let pos=new T.Vector3(-1.6,0,-.83),heading=Math.PI,hipHeight=.91;
-// Portrait study: a continuous anatomical face and clothed silhouette.
-// This is an articulated procedural likeness, not a scanned digital double.
-let portraitSeed=117;
-function portraitRandom(){portraitSeed=(portraitSeed*16807)%2147483647;return (portraitSeed-1)/2147483646}
-function microSurface(kind){const size=128,data=new Uint8Array(size*size*4);for(let y=0;y<size;y++)for(let x=0;x<size;x++){const i=(y*size+x)*4,n=portraitRandom();let v=kind==='skin'?128+(n-.5)*60:128+Math.sin((x+y)*Math.PI)*20+(n-.5)*35;if(kind==='denim')v+=((x+y*2)%5===0?32:-8);data[i]=data[i+1]=data[i+2]=v;data[i+3]=255}const t=new T.DataTexture(data,size,size,T.RGBAFormat);t.wrapS=t.wrapT=T.RepeatWrapping;t.repeat.set(kind==='skin'?3:5,kind==='skin'?3:8);t.needsUpdate=true;return t}
-const skin=new T.MeshPhysicalMaterial({color:'#aa7b60',roughness:.64,bumpMap:microSurface('skin'),bumpScale:.00035,clearcoat:.035});
-const faceSkin=skin.clone();faceSkin.vertexColors=true;
-const hair=new T.MeshStandardMaterial({color:'#171513',roughness:.86});
-const fabric=new T.MeshStandardMaterial({color:'#deded8',roughness:.94,bumpMap:microSurface('cotton'),bumpScale:.001});
-const pants=new T.MeshStandardMaterial({color:'#374452',roughness:.9,bumpMap:microSurface('denim'),bumpScale:.0008});
-const shirt=fabric,red=new T.MeshStandardMaterial({color:'#aa3029',roughness:1});
-function portraitTube(points,radius,material,parent,segments=18){const g=new T.TubeGeometry(new T.CatmullRomCurve3(points.map(p=>new T.Vector3(...p))),segments,radius,5,false);const m=new T.Mesh(g,material);m.castShadow=true;parent.add(m);return m}
-function combinePortraitStrands(geometries,material,parent){const positions=[],normals=[];for(const g of geometries){const raw=g.toNonIndexed();positions.push(...raw.attributes.position.array);normals.push(...raw.attributes.normal.array);raw.dispose();g.dispose()}const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(positions,3));g.setAttribute('normal',new T.Float32BufferAttribute(normals,3));const m=new T.Mesh(g,material);m.castShadow=true;parent.add(m);return m}
-function profileAt(profile,y){let i=0;while(i<profile.length-2&&y>profile[i+1][0])i++;const u=T.MathUtils.smoothstep(y,profile[i][0],profile[i+1][0]);return profile[i].slice(1).map((v,j)=>T.MathUtils.lerp(v,profile[i+1][j+1],u))}
-const torso=new T.Group();human.add(torso);
-const clothProfile=[[-.24,.22],[-.20,.23],[-.08,.225],[.06,.207],[.2,.201],[.33,.21],[.4,.19],[.46,.079]];
-const chestGeometry=new T.LatheGeometry(Array.from({length:90},(_,i)=>{const y=-.24+i*.70/89;return new T.Vector2(profileAt(clothProfile,y)[0],y)}),64);
-const shirtVertices=chestGeometry.attributes.position;
-for(let i=0;i<shirtVertices.count;i++){const x=shirtVertices.getX(i),y=shirtVertices.getY(i),z=shirtVertices.getZ(i);const folds=(Math.sin(y*67+x*22)*.0025+Math.sin(y*39-x*18)*.002)*Math.min(1,(.47-y)*8);shirtVertices.setXYZ(i,x,y,z*(.66+.19*(1-T.MathUtils.smoothstep(y,-.10,.16)))+folds)}
-chestGeometry.computeVertexNormals();const chest=new T.Mesh(chestGeometry,fabric);chest.castShadow=true;torso.add(chest);
-const waist=ball(.16,0,-.005,0,pants,torso);waist.scale.set(1.02,.75,.7);
-const seamMaterial=new T.MeshStandardMaterial({color:'#bbbdb9',roughness:1});
-for(const side of [-1,1]){portraitTube([[side*.18,-.2,.04],[side*.173,.04,.055],[side*.2,.28,.053]],.0015,seamMaterial,torso);const collar=portraitTube([[side*.015,.407,.068],[side*.053,.444,.061],[side*.06,.478,.012],[side*.027,.481,-.051]],.009,fabric,torso);collar.scale.y=1.01;portraitTube([[side*.013,.207,.134],[side*.014,.33,.125],[side*.02,.412,.075]],.0022,seamMaterial,torso)}
-for(const y of [.23,.295,.36]){const z=profileAt(clothProfile,y)[0]*.66+.007;const button=ball(.0055,0,y,z,mats.dark,torso);button.scale.z=.45}portraitTube([[0,.205,.144],[0,.30,.146],[0,.385,.137]],.003,fabric,torso);
-cyl(.053,.065,.13,0,.505,-.004,skin,torso);
-const head=new T.Group();head.position.set(0,.665,.012);torso.add(head);
-// Ring profile gives a narrow chin, defined jaw and taller forehead; front
-// displacement adds sockets, cheekbones, muzzle and a joined nose surface.
-const headProfile=[[-.139,.009,.04,.031],[-.126,.044,.066,.048],[-.103,.068,.073,.062],[-.072,.080,.074,.08],[-.035,.088,.079,.09],[0,.098,.077,.096],[.045,.098,.078,.101],[.09,.096,.086,.098],[.128,.080,.074,.084],[.153,.045,.039,.048],[.163,.002,.003,.003]];
-const gaussian=(x,y,cx,cy,rx,ry)=>Math.exp(-(((x-cx)/rx)**2+((y-cy)/ry)**2));
-function facePoint(y,angle){const [width,front,back]=profileAt(headProfile,y),c=Math.cos(angle),x=Math.sin(angle)*width;let z=c*(c>=0?front:back);if(c>0){const f=Math.pow(c,3);let d=.009*gaussian(x,y,0,-.084,.035,.025);for(const side of [-1,1]){d-=.012*gaussian(x,y,side*.043,.026,.025,.019);d+=.010*gaussian(x,y,side*.063,-.004,.026,.025);d-=.008*gaussian(x,y,side*.066,-.052,.028,.028);d+=.006*gaussian(x,y,side*.042,.055,.033,.012)}d+=.022*gaussian(x,y,0,.01,.012,.049)+.039*gaussian(x,y,0,-.024,.017,.017)+.015*gaussian(x,y,.017,-.031,.012,.011)+.015*gaussian(x,y,-.017,-.031,.012,.011);z+=d*f}return new T.Vector3(x,y,z)}
-const facePositions=[],faceColors=[],faceIndices=[],faceUV=[];
-for(let i=0;i<=110;i++){const y=-.139+i*.302/110;for(let j=0;j<=128;j++){const a=j/128*Math.PI*2,v=facePoint(y,a);facePositions.push(v.x,v.y,v.z);faceUV.push(j/128,i/110);const front=Math.max(0,Math.cos(a)),beard=front*(y<-.101?.64:Math.abs(v.x)>.058&&y<-.06?.23:0);const tint=1-beard+(portraitRandom()-.5)*.022;faceColors.push(tint, tint*.989,tint*.975);if(i<110&&j<128){const k=i*129+j;faceIndices.push(k,k+1,k+129,k+1,k+130,k+129)}}}
-const faceGeometry=new T.BufferGeometry();faceGeometry.setAttribute('position',new T.Float32BufferAttribute(facePositions,3));faceGeometry.setAttribute('color',new T.Float32BufferAttribute(faceColors,3));faceGeometry.setAttribute('uv',new T.Float32BufferAttribute(faceUV,2));faceGeometry.setIndex(faceIndices);faceGeometry.computeVertexNormals();
-const faceMesh=new T.Mesh(faceGeometry,faceSkin);faceMesh.castShadow=true;head.add(faceMesh);
-const lipMaterial=new T.MeshStandardMaterial({color:'#855747',roughness:.71});
-portraitTube([[-.027,-.062,.083],[-.013,-.059,.09],[0,-.062,.091],[.013,-.059,.09],[.026,-.063,.082]],.0028,lipMaterial,head);
-portraitTube([[-.025,-.065,.084],[0,-.069,.091],[.025,-.065,.084]],.0038,lipMaterial,head);
-const crease=new T.MeshStandardMaterial({color:'#5a3930',roughness:.85});
-portraitTube([[-.024,-.064,.087],[0,-.064,.094],[.023,-.064,.087]],.0009,crease,head);
-for(const side of [-1,1]){const nostril=ball(.0048,side*.015,-.037,.104,crease,head);nostril.scale.set(1,.48,.7);const ear=ball(.027,side*.102,-.012,-.002,skin,head);ear.scale.set(.46,1.28,.53);portraitTube([[side*.105,-.039,.006],[side*.115,-.019,.005],[side*.113,.009,.002],[side*.105,.016,.003]],.0027,skin,head);const inner=ball(.014,side*.109,-.009,.009,lipMaterial,head);inner.scale.set(.37,1,.25)}
-const humanEyes=[];
-const sclera=new T.MeshPhysicalMaterial({color:'#c6c0ad',roughness:.3,clearcoat:.7}),irisMat=new T.MeshPhysicalMaterial({color:'#38271f',roughness:.27,clearcoat:1});
-for(const side of [-1,1]){const eyeGroup=new T.Group();eyeGroup.position.set(side*.043,.026,.075);head.add(eyeGroup);const eye=ball(.019,0,0,0,sclera,eyeGroup);eye.scale.set(1,.49,.48);const iris=ball(.0071,0,0,.008,irisMat,eyeGroup);iris.scale.z=.35;const pupil=ball(.0031,0,0,.0102,mats.black,iris);pupil.position.z=.001;const upper=[],lower=[];for(let i=0;i<=16;i++){const t=i/16,x=(t-.5)*.042,z=.003+Math.sin(t*Math.PI)*.006;upper.push([x,Math.sin(t*Math.PI)*.009,z]);lower.push([x,-Math.sin(t*Math.PI)*.006,z])}portraitTube(upper,.0027,skin,eyeGroup);portraitTube(lower,.002,skin,eyeGroup);const lid=ball(.02,0,.012,.004,skin,eyeGroup);lid.scale.set(1,.13,.45);lid.visible=false;humanEyes.push({eyeGroup,eye,iris,lid});}
-// Fine hair follows the face rather than forming separate beard solids.
-const facialStrands=[];
-function strand(points,r=.00065,segments=6){return new T.TubeGeometry(new T.CatmullRomCurve3(points.map(p=>new T.Vector3(...p))),segments,r,3,false)}
-for(let i=0;i<1900;i++){const y=-.13+portraitRandom()*.094,a=(portraitRandom()-.5)*2.8,v=facePoint(y,a);if(y>-.09&&Math.abs(v.x)<.047)continue;if(y>-.095&&portraitRandom()>.38)continue;const length=.002+portraitRandom()*.004;facialStrands.push(strand([[v.x,v.y,v.z+.001],[v.x*.99,v.y-length,v.z+.002]],.00045,2))}
-for(const side of [-1,1]){for(let i=0;i<230;i++){const u=portraitRandom(),x=side*(.003+u*.027),y=-.046-u*.007+portraitRandom()*.005;facialStrands.push(strand([[x,y,.089+(1-u)*.008],[x+side*.002,y-.005,.093]],.0005,2))}for(let i=0;i<80;i++){const u=portraitRandom(),x=side*(.022+u*.041),y=.054+Math.sin(u*Math.PI)*.006;facialStrands.push(strand([[x,y,.079],[x+side*.003,y+.002+portraitRandom()*.003,.081]],.00065,2))}}
-combinePortraitStrands(facialStrands,hair,head);
-const hairRoot=new T.Group();head.add(hairRoot);
-function hairPoint(a,t){const frontal=Math.max(0,Math.cos(a)),edge=-.027+.141*Math.pow(frontal,.6)+.005*Math.sin(a*9)+.003*Math.sin(a*17),y=edge+(.18-edge)*Math.sin(t*Math.PI/2),r=Math.cos(t*Math.PI/2);return [Math.sin(a)*.103*r,y,Math.cos(a)*.104*r-.009]}
-const capPos=[],capIdx=[];for(let i=0;i<=32;i++)for(let j=0;j<=80;j++){capPos.push(...hairPoint(j/80*Math.PI*2,i/32));if(i<32&&j<80){const k=i*81+j;capIdx.push(k,k+1,k+81,k+1,k+82,k+81)}}const capGeo=new T.BufferGeometry();capGeo.setAttribute('position',new T.Float32BufferAttribute(capPos,3));capGeo.setIndex(capIdx);capGeo.computeVertexNormals();hairRoot.add(new T.Mesh(capGeo,hair));
-const locks=[];for(let i=0;i<650;i++){const a=portraitRandom()*Math.PI*2,t=portraitRandom()*.83,start=hairPoint(a,t),mid=hairPoint(a-.17,t+.1),end=hairPoint(a-.34,Math.min(.99,t+.23));const lift=.003+portraitRandom()*.025;mid[1]+=lift;end[0]+=.003+portraitRandom()*.008;end[1]+=lift*(.3+portraitRandom()*.8);locks.push(strand([start,mid,end],.00065+portraitRandom()*.00085,7))}combinePortraitStrands(locks,hair,hairRoot);
-let nextHumanBlink=2.7,humanBlinkStart=-10;
-function animatePortrait(dt,time,seated,walking,petting){if(time>=nextHumanBlink){humanBlinkStart=time;nextHumanBlink=time+2.5+portraitRandom()*4.2}const blinkT=time-humanBlinkStart,blink=blinkT<.19?Math.sin(blinkT/.19*Math.PI):0;for(const e of humanEyes){e.eyeGroup.scale.y=Math.max(.08,1-blink*.92);e.lid.visible=blink>.25;e.iris.position.x=Math.sin(Math.floor(time*1.4)*1.73)*.0018;e.iris.position.y=seated?-.0008:0}chest.scale.z=1+Math.sin(time*(walking?2.6:1.75))*.004;hairRoot.rotation.z=Math.sin(time*1.3)*.002;torso.rotation.z+=!walking&&!seated?Math.sin(time*.65)*.01:0;for(const arm of arms){arm.fingers.forEach((finger,i)=>{const typing=false;const tap=typing?Math.max(0,Math.sin(time*7+i*1.9+arm.side))*.24:0;finger.rotation.x=T.MathUtils.damp(finger.rotation.x,.12+tap,12,dt);finger.children[1].rotation.x=.16+tap*.7})}}
-
-// Each trouser leg is one continuous surface, deformed through hip, knee and ankle.
-function organicLimb(material){const mesh=new T.Mesh(new T.BufferGeometry(),material),vertices=new Float32Array(25*20*3),indices=[];for(let i=0;i<24;i++)for(let j=0;j<20;j++){const a=i*20+j,b=i*20+(j+1)%20;indices.push(a,b,a+20,b,b+20,a+20)}mesh.geometry.setAttribute('position',new T.BufferAttribute(vertices,3).setUsage(T.DynamicDrawUsage));mesh.geometry.setIndex(indices);mesh.castShadow=true;mesh.frustumCulled=false;return mesh}
-function shapeLeg(mesh,a,k,b){const curve=new T.CatmullRomCurve3([a,k,b],false,'centripetal'),attr=mesh.geometry.attributes.position;for(let i=0;i<25;i++){const t=i/24,c=curve.getPoint(t),tangent=curve.getTangent(t).normalize(),normal=new T.Vector3(1,0,0).cross(tangent).normalize(),binormal=tangent.clone().cross(normal).normalize();const r=t<.5?T.MathUtils.lerp(.092,.073,t*2):T.MathUtils.lerp(.073,.05,(t-.5)*2);for(let j=0;j<20;j++){const angle=j/20*Math.PI*2,fold=1+Math.sin(t*43+angle*2)*.025;const v=c.clone().addScaledVector(normal,Math.cos(angle)*r*fold).addScaledVector(binormal,Math.sin(angle)*r*.94);attr.setXYZ(i*20+j,v.x,v.y,v.z)}}attr.needsUpdate=true;mesh.geometry.computeVertexNormals()}
-const limbs=[];for(const side of [-1,1]){const trouser=organicLimb(pants);human.add(trouser);const foot=new T.Group();human.add(foot);const sole=ball(.12,0,-.063,.012,mats.black,foot);sole.scale.set(.49,.10,1.07);const bareFoot=ball(.10,0,-.034,.013,skin,foot);bareFoot.scale.set(.51,.28,1.1);for(let j=0;j<5;j++){const toe=ball(.012-j*.001,-.036+j*.017,-.039,.097-Math.abs(j-1)*.006,skin,foot);toe.scale.y=.65}for(const dir of [-1,1])portraitTube([[0,-.012,.073],[dir*.025,.001,.029],[dir*.046,-.025,-.009]],.009,mats.black,foot);limbs.push({side,trouser,foot})}
-const arms=[];
-for(const side of [-1,1]){const shoulder=new T.Group();shoulder.position.set(side*.202,.373,0);torso.add(shoulder);const sleeveProfile=[[.026,.04],[0,.071],[-.06,.067],[-.15,.058],[-.26,.051],[-.31,.051]].reverse().map(([y,r])=>new T.Vector2(r,y));const sleeve=new T.Mesh(new T.LatheGeometry(sleeveProfile,32),fabric);shoulder.add(sleeve);const elbow=new T.Group();elbow.position.y=-.29;shoulder.add(elbow);const forearmProfile=[[-.267,.026],[-.23,.028],[-.15,.036],[-.065,.043],[.015,.046]].map(([y,r])=>new T.Vector2(r,y));const forearm=new T.Mesh(new T.LatheGeometry(forearmProfile,32),skin);forearm.scale.z=.88;elbow.add(forearm);for(let i=0;i<3;i++)cyl(.052-i*.001,.053-i*.001,.022,0,-.005-i*.015,0,fabric,elbow);const hand=new T.Group();hand.position.y=-.272;elbow.add(hand);const palm=ball(.039,0,-.022,0,skin,hand);palm.scale.set(.79,1.12,.38);const fingers=[];for(let j=0;j<4;j++){const finger=new T.Group();finger.position.set(-.022+j*.014,-.047,.001);hand.add(finger);const length=[.050,.057,.053,.041][j];let joint=finger;for(let k=0;k<3;k++){const seg=new T.Mesh(new T.CapsuleGeometry(.0055-k*.0007,length/3-.006,4,8),skin);seg.position.y=-length/6;joint.add(seg);if(k<2){const next=new T.Group();next.position.y=-length/3;joint.add(next);joint=next}}const tip=new T.Object3D();tip.position.y=-length/3; joint.add(tip);finger.userData.tip=tip;fingers.push(finger)}const thumb=new T.Group();thumb.position.set(side*.029,-.011,.005);thumb.rotation.z=side*.55;hand.add(thumb);const th=new T.Mesh(new T.CapsuleGeometry(.007,.028,4,8),skin);th.position.y=-.014;thumb.add(th);if(side===1){const bracelet=new T.Mesh(new T.TorusGeometry(.028,.0018,6,32),red);bracelet.rotation.x=Math.PI/2;bracelet.position.y=-.245;elbow.add(bracelet);portraitTube([[.023,-.244,0],[.032,-.255,.004],[.028,-.269,.006]],.0011,red,elbow)}arms.push({side,shoulder,elbow,hand,fingers})}
-// Solve both arm bones against a world-space wrist target. The hand orientation
-// is independent of the elbow so the palm stays parallel to the key surface.
-const armDown=new T.Vector3(0,-1,0),typingPalm=new T.Quaternion().setFromEuler(new T.Euler(-Math.PI/2,0,0));
-let typingBlend=0;
-function solveTyping(dt,time,enabled){
- typingBlend=T.MathUtils.damp(typingBlend,enabled?1:0,9,dt);
- keys.forEach(key=>key.position.y=key.userData.restY);
- if(!enabled)return;
- human.updateMatrixWorld(true);keyboard.updateMatrixWorld(true);
- const palmWorld=human.getWorldQuaternion(new T.Quaternion()).multiply(typingPalm);
- for(const arm of arms){
-  const clock=time*2.7+(arm.side>0?.53:0),active=Math.floor(clock)%4,phase=clock%1;
-  const working=!reduced&&Math.sin(time*.9)>-.55&&typingBlend>.995;
-  const press=working?Math.max(0,Math.sin((phase-.15)/.7*Math.PI)):0;
-  arm.fingers.forEach((f,i)=>{f.rotation.x=i===active?.10+press*.10:-.22;f.children[1].rotation.x=i===active?.08:-.1});
-  arm.hand.updateWorldMatrix(true,true);
-  const finger=arm.fingers[active],tipLocal=arm.hand.worldToLocal(finger.userData.tip.getWorldPosition(new T.Vector3()));
-  const column=arm.side>0?3:8,key=keys[column*4+2];
-  const contact=working&&press>.92;key.position.y-=contact?.0025:0;
-  key.updateWorldMatrix(true,false);
-  const keyTop=key.getWorldPosition(new T.Vector3());keyTop.y+=.004;
-  // During recovery the pad clears the key; at full depression it meets its top.
-  const hover=working?Math.max(0,(.92-press)/.92)*.010:.004;
-  const goal=keyTop.clone().add(new T.Vector3(0,.0038+hover,0)).sub(tipLocal.clone().applyQuaternion(palmWorld));
-  const shoulder=arm.shoulder.getWorldPosition(new T.Vector3()),delta=goal.clone().sub(shoulder),distance=delta.length();
-  const upper=.29,lower=.272,reach=T.MathUtils.clamp(distance,.03,upper+lower-.001),axis=delta.normalize();
-  const along=(upper*upper-lower*lower+reach*reach)/(2*reach);
-  const bend=new T.Vector3(-arm.side*.18,-1,0);bend.addScaledVector(axis,-bend.dot(axis)).normalize();
-  const elbow=shoulder.clone().addScaledVector(axis,along).addScaledVector(bend,Math.sqrt(Math.max(0,upper*upper-along*along)));
-  const shoulderWorld=new T.Quaternion().setFromUnitVectors(armDown,elbow.clone().sub(shoulder).normalize());
-  const parentWorld=arm.shoulder.parent.getWorldQuaternion(new T.Quaternion());
-  arm.shoulder.quaternion.slerp(parentWorld.invert().multiply(shoulderWorld),typingBlend);
-  arm.shoulder.updateWorldMatrix(true,true);
-  const actualElbow=arm.elbow.getWorldPosition(new T.Vector3());
-  const forearmWorld=new T.Quaternion().setFromUnitVectors(armDown,goal.clone().sub(actualElbow).normalize());
-  arm.elbow.quaternion.slerp(arm.shoulder.getWorldQuaternion(new T.Quaternion()).invert().multiply(forearmWorld),typingBlend);
-  arm.elbow.updateWorldMatrix(true,true);
-  arm.hand.quaternion.slerp(arm.elbow.getWorldQuaternion(new T.Quaternion()).invert().multiply(palmWorld),typingBlend);
-  arm.hand.updateWorldMatrix(true,true);
-  arm.typingContact={key,tip:finger.userData.tip,contact,goal,reach:distance};
- }
-}
-function segment(mesh,a,b){mesh.position.copy(a).add(b).multiplyScalar(.5);mesh.scale.y=a.distanceTo(b)/.4;mesh.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),b.clone().sub(a).normalize())}
-function solveLeg(l,foot,hipY){const a=new T.Vector3(l.side*.105,hipY,0),b=new T.Vector3(foot.x??l.side*.14,foot.y,foot.z),d=b.clone().sub(a),len=Math.min(d.length(),.795),mid=a.clone().add(b).multiplyScalar(.5),bend=new T.Vector3(0,-d.z,d.y).normalize().negate();const k=mid.add(bend.multiplyScalar(Math.sqrt(Math.max(0,.4*.4-len*len/4))));shapeLeg(l.trouser,a,k,b);l.foot.position.copy(b);l.foot.position.z+=.065}
+// Sagar's room avatar is now a carved ivory chess knight.
+let pos=new T.Vector3(-1.6,0,-.83);
+const knight=new T.Group();knight.name='Sagar chess knight';scene.add(knight);
+const knightIvory=new T.MeshPhysicalMaterial({color:'#eee5cf',roughness:.3,clearcoat:.5,clearcoatRoughness:.22});
+const knightTrim=new T.MeshStandardMaterial({color:'#bda276',metalness:.7,roughness:.3});
+const baseProfile=[[.001,.24],[.025,.28],[.07,.28],[.095,.24],[.12,.25],[.15,.23],[.18,.19],[.23,.16],[.28,.15],[.31,.20]].map(([y,r])=>new T.Vector2(r,y));
+const knightBase=new T.Mesh(new T.LatheGeometry(baseProfile,64),knightIvory);knight.add(knightBase);
+for(const y of [.035,.115]){const ring=new T.Mesh(new T.TorusGeometry(y<.1?.276:.244,.007,8,64),knightTrim);ring.rotation.x=Math.PI/2;ring.position.y=y;knight.add(ring)}
+const horse=new T.Shape();horse.moveTo(-.19,.29);horse.bezierCurveTo(-.25,.48,-.22,.76,-.15,.92);horse.lineTo(-.13,1.11);horse.lineTo(-.045,1.035);horse.lineTo(.03,1.12);horse.lineTo(.055,1.0);horse.bezierCurveTo(.17,.99,.21,.92,.28,.88);horse.lineTo(.39,.82);horse.quadraticCurveTo(.425,.785,.39,.74);horse.lineTo(.32,.705);horse.lineTo(.15,.77);horse.quadraticCurveTo(.095,.76,.11,.65);horse.bezierCurveTo(.13,.53,.24,.42,.19,.29);horse.closePath();
+const horseMesh=new T.Mesh(new T.ExtrudeGeometry(horse,{depth:.19,bevelEnabled:true,bevelThickness:.025,bevelSize:.022,bevelSegments:4,curveSegments:24,steps:1}),knightIvory);horseMesh.rotation.y=-Math.PI/2;horseMesh.position.x=.095;knight.add(horseMesh);
+for(const side of [-1,1]){const eye=ball(.019,side*.119,.936,.105,mats.black,knight);eye.scale.x=.28;const nostril=ball(.012,side*.116,.79,.355,mats.dark,knight);nostril.scale.x=.28;line([side*.12,.748,.32],[side*.12,.77,.20],.003,knightTrim,knight);for(let i=0;i<7;i++){const y=.51+i*.054;line([side*.12,y,-.21],[side*.123,y+.039,-.155],.004,knightTrim,knight)}}
+knight.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});
+function updateKnight(time){let height=.01;if(['CODING','TURN','TURN_BACK'].includes(humanState))height=.742;else if(humanState==='STAND'){const u=T.MathUtils.smoothstep(humanClock,0,1.7);height=T.MathUtils.lerp(.742,.01,u)+Math.sin(u*Math.PI)*.10}else if(humanState==='SIT_DOWN'){const u=T.MathUtils.smoothstep(humanClock,.3,2);height=T.MathUtils.lerp(.01,.742,u)+Math.sin(u*Math.PI)*.10}knight.position.copy(pos);knight.position.y=height;knight.rotation.set(0,developerYaw,0);if(!reduced){if(humanState==='WALK')knight.position.y+=Math.abs(Math.sin(humanDistance*7))*.035;if(humanState==='PLAY')knight.rotation.x=Math.sin(time*2)*.035;if(humanState==='CODING')knight.rotation.x=Math.sin(time*.8)*.009}}
 // The cat is the room's navigation character. Its paws and body share one
 // locomotion clock, while its face, ears and tail move on separate cycles.
 const fur=new T.MeshStandardMaterial({color:'#ecebe5',roughness:.96}),furLight=new T.MeshStandardMaterial({color:'#fffdf4',roughness:1}),furStripe=new T.MeshStandardMaterial({color:'#c9cbc7',roughness:.96});
@@ -287,12 +194,12 @@ const tapRings=[0,1].map(()=>{const mesh=new T.Mesh(new T.RingGeometry(.031,.039
 function updateTapFeedback(){const active=catState==='TOUCH'&&catClock>=.78&&catClock<1.45&&catGoal;tapFeedback.visible=!!active;if(!active)return;const d=destinations[catGoal];tapFeedback.position.set(d.x+.136,d.y-.28,-2.493);tapRings.forEach((ring,i)=>{const t=T.MathUtils.clamp((catClock-.78-i*.13)/.54,0,1);ring.scale.setScalar(1+t*3.5);ring.material.opacity=t>0?(1-t)*.95:0})}
 function catFinishVisit(){catGoal=null;catSetState('IDLE');catWait=0;catExpression='relaxed';if(catQueued){const next=catQueued;catQueued=null;catNavigate(next)}else $('#status').textContent='Sagar is coding · the cat is exploring'}
 function finishJumpSequence(){if(catQueued){if(catPos.y>.05)catStartDown();else catFinishVisit();return}if(catSequence==='LINK')catSetState('TOUCH');else catFinishVisit()}
-function idleCatAction(){catWait=0;const n=catRoamIndex++%12;catGoal=null;if(n===0){catExpression='curious';catWalkTo(-3.95,-1.05,'ROAM','DESK')}else if(n===2){catExpression='playful';catSetState('STRETCH')}else if(n===4&&humanState==='CODING'){catWalkTo(-.39,.75,'ROAM','FOOTBALL')}else if(n===6&&humanState==='CODING'){catWalkTo(-1.6,.35,'ROAM','LAP')}else if(n===8){catWalkTo(-2.6,1.05,'ROAM','CHAIR')}else if(n===10){catExpression='relaxed';catSetState('SIT')}else{catExpression='curious';const [x,z]=roamSpots[n%roamSpots.length];catWalkTo(x,z,'ROAM','ROAM')}}
+function idleCatAction(){catWait=0;const n=catRoamIndex++%12;catGoal=null;if(n===0){catExpression='curious';catWalkTo(-3.95,-1.05,'ROAM','DESK')}else if(n===2){catExpression='playful';catSetState('STRETCH')}else if(n===4&&humanState==='CODING'){catWalkTo(-.39,.75,'ROAM','FOOTBALL')}else if(n===6&&humanState==='CODING'){catWalkTo(-2.6,1.05,'ROAM','LAP')}else if(n===8){catWalkTo(-2.6,1.05,'ROAM','CHAIR')}else if(n===10){catExpression='relaxed';catSetState('SIT')}else{catExpression='curious';const [x,z]=roamSpots[n%roamSpots.length];catWalkTo(x,z,'ROAM','ROAM')}}
 function updateCat(dt,time){
  catClock+=dt;catWait+=dt;updateFootball(dt);if(catState==='HUMAN_REST'&&humanState!=='PLAY'){catSetState('IDLE');catWait=0;}
  if(catState==='IDLE'&&catWait>4.5&&!reduced)idleCatAction();
  const walking=catState==='WALK'||catState==='ROAM';
- if(walking){const target=catRoute[catWaypoint];if(target){const delta=target.clone().sub(catPos),distance=delta.length(),toward=Math.atan2(delta.x,delta.z),turn=Math.atan2(Math.sin(toward-catHeading),Math.cos(toward-catHeading));catHeading+=T.MathUtils.clamp(turn,-dt*3.3,dt*3.3);const final=catWaypoint===catRoute.length-1;let desired=Math.min(catGoal?.65:.4,final?distance*2.5:.75);if(Math.abs(turn)>.55)desired*=Math.max(0,1-Math.abs(turn)/1.35);catSpeed=T.MathUtils.lerp(catSpeed,desired,Math.min(1,dt*5));const moved=Math.min(distance,catSpeed*dt);catPos.addScaledVector(delta.normalize(),moved);catDistance+=moved/CAT_SCALE;if(distance<.025)catWaypoint++}else{catSpeed=0;if(catRoutePurpose==='LINK'){catStartClimb()}else if(catRoutePurpose==='CHAIR'){beginJumpSequence([[-3.55,.81,1.06],[-2.6,0,1.05]],'CHAIR')}else if(catRoutePurpose==='GAP'){beginJumpSequence([[catPos.x+.55,0,catPos.z]],'GAP')}else if(catRoutePurpose==='DESK'){beginJumpSequence([[-3.12,1.41,-1.59],[-3.04,1.41,-1.59],[-3.95,0,-1.05]],'DESK')}else if(catRoutePurpose==='LAP'){beginJumpSequence([[-1.6,.9,-.48],[-1.6,0,.35]],'LAP')}else if(catRoutePurpose==='FOOTBALL'){startFootball()}else if(catRoutePurpose==='HUMAN'){catHeading=Math.PI;catExpression='affectionate';catSetState('HUMAN_REST')}else if(catRoutePurpose==='CALL'){catExpression='affectionate';catSetState('AFFECTION')}else{catExpression='curious';catSetState('SNIFF')}}}
+ if(walking){const target=catRoute[catWaypoint];if(target){const delta=target.clone().sub(catPos),distance=delta.length(),toward=Math.atan2(delta.x,delta.z),turn=Math.atan2(Math.sin(toward-catHeading),Math.cos(toward-catHeading));catHeading+=T.MathUtils.clamp(turn,-dt*3.3,dt*3.3);const final=catWaypoint===catRoute.length-1;let desired=Math.min(catGoal?.65:.4,final?distance*2.5:.75);if(Math.abs(turn)>.55)desired*=Math.max(0,1-Math.abs(turn)/1.35);catSpeed=T.MathUtils.lerp(catSpeed,desired,Math.min(1,dt*5));const moved=Math.min(distance,catSpeed*dt);catPos.addScaledVector(delta.normalize(),moved);catDistance+=moved/CAT_SCALE;if(distance<.025)catWaypoint++}else{catSpeed=0;if(catRoutePurpose==='LINK'){catStartClimb()}else if(catRoutePurpose==='CHAIR'){beginJumpSequence([[-3.55,.81,1.06],[-2.6,0,1.05]],'CHAIR')}else if(catRoutePurpose==='GAP'){beginJumpSequence([[catPos.x+.55,0,catPos.z]],'GAP')}else if(catRoutePurpose==='DESK'){beginJumpSequence([[-3.12,1.41,-1.59],[-3.04,1.41,-1.59],[-3.95,0,-1.05]],'DESK')}else if(catRoutePurpose==='LAP'){beginJumpSequence([[-3.55,.81,1.06],[-2.6,0,1.05]],'LAP')}else if(catRoutePurpose==='FOOTBALL'){startFootball()}else if(catRoutePurpose==='HUMAN'){catHeading=Math.PI;catExpression='affectionate';catSetState('HUMAN_REST')}else if(catRoutePurpose==='CALL'){catExpression='affectionate';catSetState('AFFECTION')}else{catExpression='curious';catSetState('SNIFF')}}}
  if(catState==='NOTICE'){const delta=jumpTo.clone().sub(catPos);if(Math.hypot(delta.x,delta.z)>.07){const goal=Math.atan2(delta.x,delta.z);catHeading+=Math.atan2(Math.sin(goal-catHeading),Math.cos(goal-catHeading))*Math.min(1,dt*6)}if(catClock>.28)catSetState('CROUCH')}
  if(catState==='CROUCH'&&catClock>.38)catSetState('PUSH_OFF');
  if(catState==='PUSH_OFF'&&catClock>.09){flightClock=0;catSetState('JUMP')}
@@ -368,16 +275,16 @@ const panelEl=$('#panel');const state='CODING';let reduced=matchMedia('(prefers-
 // Furniture-aware paths for the cat, including both chairs.
 function pathTo(tx,tz,origin=pos){const step=.25,min=-4.5,max=4.5,zmin=-2.75,zmax=2.75;const snap=(x,z)=>[Math.round((x-min)/step),Math.round((z-zmin)/step)];const world=([x,z])=>new T.Vector3(min+x*step,0,zmin+z*step);const blocked=(x,z)=>(x>-3.8&&x<.55&&z>-2.95&&z<-1.23)||(x>.2&&x<4.2&&z<-2.15)||Math.hypot(x+1.6,z+.83)<.57||Math.hypot(x+3.55,z-1.12)<.59||(x<-3.65&&z>-.75&&z<.25)||(x>3.85&&z>1.1&&z<2.1);const start=snap(origin.x,origin.z),end=snap(tx,tz),key=a=>a.join(','),open=[start],came=new Map(),g=new Map([[key(start),0]]);let found=false;while(open.length){open.sort((a,b)=>(g.get(key(a))+Math.hypot(a[0]-end[0],a[1]-end[1]))-(g.get(key(b))+Math.hypot(b[0]-end[0],b[1]-end[1])));const a=open.shift();if(key(a)===key(end)){found=true;break}for(const [dx,dz]of [[1,0],[-1,0],[0,1],[0,-1]]){const b=[a[0]+dx,a[1]+dz],w=world(b);if(w.x<min||w.x>max||w.z<zmin||w.z>zmax||blocked(w.x,w.z))continue;const cost=g.get(key(a))+1;if(cost<(g.get(key(b))??Infinity)){came.set(key(b),a);g.set(key(b),cost);if(!open.some(q=>key(q)===key(b)))open.push(b)}}}if(!found)return null;const out=[];let node=end;while(key(node)!==key(start)){out.unshift(world(node));node=came.get(key(node))}out.push(new T.Vector3(tx,0,tz));return out}
 panelEl.querySelector('.close').onclick=()=>panelEl.close();panelEl.addEventListener('close',()=>{if(catState==='READING')catStartDown()});
-$('#think').textContent='◌  Call the cat';$('#think').onclick=()=>{if(catState==='IDLE'||catState==='ROAM'){if(humanState==='CODING')catWalkTo(-1.6,.35,'ROAM','LAP');else catWalkTo(pos.x+.4,pos.z+.4,'ROAM','CALL')}};
+$('#think').textContent='◌  Call the cat';$('#think').onclick=()=>{if(catState==='IDLE'||catState==='ROAM'){if(humanState==='CODING')catWalkTo(-2.6,1.05,'ROAM','LAP');else catWalkTo(pos.x+.4,pos.z+.4,'ROAM','CALL')}};
 function updateMotion(){ $('#motion').setAttribute('aria-pressed',String(reduced));$('#motion').textContent=reduced?'Motion: reduced':'Reduce motion'}updateMotion();$('#motion').onclick=()=>{reduced=!reduced;updateMotion()};$('#quality').onclick=()=>{const low=$('#quality').textContent.includes('high');renderer.setPixelRatio(low?1:Math.min(devicePixelRatio,2));renderer.shadowMap.enabled=!low;bodyFur.count=low?2200:6500;faceFur.count=low?600:1800;chestFur.count=low?300:900;$('#quality').textContent='Quality: '+(low?'low':'high')};$('#reset').onclick=()=>{camYaw=camPitch=0};
 let dragging=false,lastX=0,lastY=0;renderer.domElement.addEventListener('pointerdown',e=>{dragging=true;lastX=e.clientX;lastY=e.clientY;renderer.domElement.setPointerCapture(e.pointerId)});renderer.domElement.addEventListener('pointermove',e=>{if(dragging){camYaw=T.MathUtils.clamp(camYaw-(e.clientX-lastX)*.003,-.9,.9);camPitch=T.MathUtils.clamp(camPitch+(e.clientY-lastY)*.002,-.2,.2);lastX=e.clientX;lastY=e.clientY}});renderer.domElement.addEventListener('pointerup',()=>dragging=false);renderer.domElement.addEventListener('pointercancel',()=>dragging=false);
 function resize(){renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.fov=innerWidth<760?75:58;camera.updateProjectionMatrix()}addEventListener('resize',resize);
 // Human activity controller: seated -> stand -> walk -> look -> play -> return.
 let humanState='CODING',humanClock=0,humanRoute=[],humanStep=0,humanDistance=0,humanSpeed=0,humanHip=.8,humanReturn=false,humanPetClock=0,humanBreakCount=0;
 const deskHome=new T.Vector3(-1.6,0,-.83),standingHome=new T.Vector3(-1.6,0,-.12);
-const plantedFeet=limbs.map(()=>new T.Vector3()),swingStarts=limbs.map(()=>new T.Vector3()),swingEnds=limbs.map(()=>new T.Vector3());let humanAnchored=false,footSwing=[false,false];
-function humanSet(next){humanState=next;humanClock=0;humanPetClock=0;humanAnchored=false;humanSpeed=0}
-function startHumanBreak(){if(humanState!=='CODING'||footballActive||catRoutePurpose==='LAP'&&catState!=='IDLE')return;humanBreakCount++;humanSet('TURN');$('#status').textContent='Sagar is taking a short break'}
+
+function humanSet(next){humanState=next;humanClock=0;humanPetClock=0;humanSpeed=0}
+function startHumanBreak(){if(humanState!=='CODING'||footballActive||catRoutePurpose==='LAP'&&catState!=='IDLE')return;humanBreakCount++;humanSet('TURN');$('#status').textContent='Your knight is taking a short break'}
 function humanWalk(points,returning=false){humanRoute=points.map(p=>new T.Vector3(p[0],0,p[1]));humanStep=0;humanReturn=returning;humanSet('WALK')}
 function humanYawTo(target,dt){developerYaw+=T.MathUtils.clamp(Math.atan2(Math.sin(target-developerYaw),Math.cos(target-developerYaw)),-dt*2.5,dt*2.5)}
 function updateHuman(dt,time){
@@ -394,24 +301,8 @@ function updateHuman(dt,time){
  const social=seated&&(footballActive||catRoutePurpose==='LAP'&&['ROAM','NOTICE','CROUCH','PUSH_OFF','JUMP','LANDING','PERCH'].includes(catState));
  if(seated){developerYaw=T.MathUtils.damp(developerYaw,social?0:Math.PI,3,dt);chair.rotation.y=developerYaw-Math.PI;humanHip=.8}
  else if(!['STAND','SIT_DOWN','TURN','TURN_BACK'].includes(humanState))humanHip=T.MathUtils.damp(humanHip,petting?.48:.87,4,dt);
- human.position.copy(pos);human.rotation.y=developerYaw;torso.position.y=humanHip+Math.sin(time*1.8)*.003;torso.rotation.x=petting?.42:humanState==='STAND'?Math.sin(smooth(0,1.7)*Math.PI)*.28:seated?.11:.025;
- torso.rotation.z=walking?Math.sin(humanDistance/.85*Math.PI*2)*.016:0;head.rotation.y=humanState==='WINDOW'?Math.sin(time*.4)*.12:Math.sin(time*.35)*.06;head.rotation.x=petting?.24:seated?.1:0;
- for(let i=0;i<limbs.length;i++){
- const leg=limbs[i],cycle=(humanDistance/.86+i*.5)%1;
- let foot={x:leg.side*.14,z:seated||humanState==='TURN'||humanState==='TURN_BACK'?.4:0,y:.085};
- if(walking){const ground=(forward)=>new T.Vector3(leg.side*.14,.085,forward).applyAxisAngle(axisY,developerYaw).add(pos);if(!humanAnchored){plantedFeet[i].copy(ground(0));footSwing[i]=false}
- if(cycle>.6){if(!footSwing[i]){swingStarts[i].copy(plantedFeet[i]);swingEnds[i].copy(ground(.23));footSwing[i]=true}const u=(cycle-.6)/.4;plantedFeet[i].lerpVectors(swingStarts[i],swingEnds[i],T.MathUtils.smoothstep(u,0,1));plantedFeet[i].y=.085+Math.sin(u*Math.PI)*.085}else footSwing[i]=false;
- const local=plantedFeet[i].clone().sub(pos).applyAxisAngle(axisY,-developerYaw);if(Math.abs(local.z)>.32){plantedFeet[i].copy(ground(0));local.set(leg.side*.14,.085,0)}foot={x:local.x,y:local.y,z:local.z};}
- if(humanState==='STAND')foot.z=.4*(1-smooth(0,1.7));if(humanState==='SIT_DOWN')foot.z=.4*smooth(.3,2);
- if(petting)foot.z=leg.side===1?.22:-.13;
- const kick=seated&&footballActive&&leg.side===1?Math.max(0,1-Math.abs(footballClock%5.2-.8)/.3):0;foot.z+=kick*.18;foot.y+=kick*.085;
- solveLeg(leg,foot,humanHip);
- leg.foot.rotation.x=walking?(cycle<.12?.12*(1-cycle/.12):cycle>.48&&cycle<.6?-.16*(cycle-.48)/.12:cycle>.6?-.12*Math.sin((cycle-.6)/.4*Math.PI):0):0;
- }
- humanAnchored=walking;
- for(const arm of arms){const previousShoulder=arm.shoulder.rotation.x,previousElbow=arm.elbow.rotation.x;arm.shoulder.rotation.y=T.MathUtils.damp(arm.shoulder.rotation.y,0,6,dt);arm.elbow.rotation.y=T.MathUtils.damp(arm.elbow.rotation.y,0,6,dt);arm.elbow.rotation.z=T.MathUtils.damp(arm.elbow.rotation.z,0,6,dt);arm.hand.rotation.y=T.MathUtils.damp(arm.hand.rotation.y,0,6,dt);arm.hand.rotation.z=T.MathUtils.damp(arm.hand.rotation.z,0,6,dt);arm.shoulder.rotation.z=arm.side*.08;arm.shoulder.rotation.x=seated?-1:walking?Math.sin(humanDistance/.86*Math.PI*2+arm.side*Math.PI/2)*.23:0;arm.elbow.rotation.x=seated?-1.1:-.12;arm.hand.rotation.x=seated&&!reduced?Math.sin(time*15+arm.side)*.10:0;if(social){arm.shoulder.rotation.x=-.25;arm.elbow.rotation.x=-.85}if(petting&&arm.side===1){arm.shoulder.rotation.x=-.4+Math.sin(time*2.3)*.045;arm.elbow.rotation.x=-.2;arm.hand.rotation.x=Math.sin(time*2.3)*.09}arm.shoulder.rotation.x=T.MathUtils.damp(previousShoulder,arm.shoulder.rotation.x,6,dt);arm.elbow.rotation.x=T.MathUtils.damp(previousElbow,arm.elbow.rotation.x,6,dt)}
- animatePortrait(dt,time,seated,walking,petting);
- solveTyping(dt,time,seated&&!social&&Math.abs(Math.atan2(Math.sin(developerYaw-Math.PI),Math.cos(developerYaw-Math.PI)))<.035);
+ updateKnight(time);
+
 }
 const breakButton=document.createElement('button');breakButton.textContent='Take a break';breakButton.onclick=startHumanBreak;$('.controls').append(breakButton);
 let last=performance.now(),time=0,lastCode=-1;
