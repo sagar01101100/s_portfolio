@@ -43,31 +43,13 @@ const code=texture(()=>{});
 const codingMonitor=panel(2.05,1.16,-1.6,2.14,-2.38,code.tex);
 box(.08,.35,.08,-1.6,1.58,-2.37);box(.55,.035,.28,-1.6,1.445,-2.3);
 
-// Pull-out tray keeps the keyboard within a seated person's natural reach.
+// Pull-out tray keeps the keyboard within the hovering knight's reach.
 const keyboard=new T.Group();keyboard.position.set(-1.6,1.155,-1.42);scene.add(keyboard);
 box(.72,.025,.35,0,-.025,0,mats.dark,keyboard);
 for(const side of [-1,1])box(.018,.19,.25,side*.34,.08,-.02,mats.metal,keyboard);
 box(.50,.025,.19,0,0,0,mats.black,keyboard);
 const keys=[];for(let i=0;i<12;i++)for(let j=0;j<4;j++){const key=box(.029,.008,.030,(i-5.5)*.039,.018,(j-1.5)*.043,i%3?mats.metal:mats.gold,keyboard);key.userData.restY=.018;keys.push(key)}
 const mouse=ball(.075,-.84,1.48,-1.6,mats.ivory);mouse.scale.set(.7,.35,1);cyl(.09,.075,.2,-2.9,1.52,-2.05,mats.ivory);cyl(.075,.075,.005,-2.9,1.625,-2.05,mats.black);box(.46,.84,.67,.03,.45,-2.08,mats.black);box(.008,.69,.54,-.21,.47,-2.08,new T.MeshPhysicalMaterial({color:'#68bdda',transparent:true,opacity:.23,roughness:.1}));box(.32,.025,.02,.03,.85,-1.735,mats.glow);const fans=[];for(let y of [.25,.55]){const f=new T.Group();f.position.set(.03,y,-1.735);scene.add(f);for(let j=0;j<5;j++){const b=box(.018,.2,.015,0,0,0,mats.metal,f);b.rotation.z=j*Math.PI/5}fans.push(f)}
-// Reference chair: white ergonomic frame, grey woven mesh, separate headrest,
-// curved lumbar support, padded seat, adjustable black arm pads and five casters.
-const chair=new T.Group();chair.position.set(-1.6,0,-.86);scene.add(chair);
-const chairWhite=new T.MeshStandardMaterial({color:'#ebeff0',roughness:.38,metalness:.15});
-const meshGrey=new T.MeshStandardMaterial({color:'#929b9e',roughness:.82,transparent:true,opacity:.72,side:T.DoubleSide});
-const seatGrey=new T.MeshStandardMaterial({color:'#4b565b',roughness:.92});
-cyl(.048,.055,.49,0,.4,0,mats.black,chair);cyl(.068,.075,.12,0,.18,0,mats.black,chair);
-for(let i=0;i<5;i++){const a=i*Math.PI*2/5;line([0,.18,0],[Math.sin(a)*.43,.09,Math.cos(a)*.43],.032,chairWhite,chair);const wheel=cyl(.07,.07,.067,Math.sin(a)*.43,.073,Math.cos(a)*.43,mats.black,chair);wheel.rotation.z=Math.PI/2}
-const seat=ball(.32,0,.725,-.035,seatGrey,chair);seat.scale.set(1.08,.28,1.05);
-const back=new T.Group();back.position.set(0,1.12,.275);back.rotation.x=.08;chair.add(back);
-// Mesh has actual gaps so the character and back support depth-test correctly.
-function meshBack(width,height,parent){const curve=y=>.052*Math.cos(y/height*Math.PI*2);for(let y=-height/2;y<=height/2;y+=.012){line([-width/2,y,curve(y)],[width/2,y,curve(y)],.0025,meshGrey,parent)}for(let x=-width/2;x<=width/2;x+=.016){const points=[];for(let y=-height/2;y<=height/2+.001;y+=height/16)points.push(new T.Vector3(x,y,curve(y)));const m=new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3(points),16,.0015,3,false),meshGrey);parent.add(m)}for(let side of [-1,1]){const pts=[];for(let i=0;i<=12;i++){const y=-height/2+i*height/12;pts.push(new T.Vector3(side*width/2,y,curve(y)))}parent.add(new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3(pts),16,.017,7,false),chairWhite))}for(let y of [-height/2,height/2])line([-width/2,y,curve(y)],[width/2,y,curve(y)],.017,chairWhite,parent)}
-meshBack(.58,.7,back);
-line([0,-.34,.09],[0,.31,.11],.023,chairWhite,back);for(let side of [-1,1]){line([0,-.22,.1],[side*.24,.18,.09],.024,chairWhite,back);line([0,-.2,.11],[side*.25,-.3,.08],.02,chairWhite,back)}
-line([0,.76,.24],[0,1.1,.35],.029,chairWhite,chair);line([0,1.45,.32],[0,1.59,.34],.027,chairWhite,chair);
-const headrest=new T.Group();headrest.position.set(0,1.62,.3);headrest.rotation.x=.13;chair.add(headrest);meshBack(.39,.2,headrest);
-for(let x of [-.36,.36]){line([x,.76,.13],[x,1.045,-.03],.027,chairWhite,chair);const pad=ball(.11,x,1.06,-.04,mats.black,chair);pad.scale.set(.53,.22,1.6)}
-line([.13,.65,0],[.34,.63,.05],.015,mats.black,chair);box(.09,.025,.08,.34,.63,.05,mats.black,chair);cyl(.048,.048,.065,0,.63,-.15,mats.black,chair);
 const boardtex=texture((c,w,h)=>{c.fillStyle='#d1d0bd';c.fillRect(0,0,w,h);c.fillStyle='#344549';c.font='34px sans-serif';c.fillText('What if we made it simpler?',55,70);c.strokeStyle='#526263';c.lineWidth=4;for(let [x,y,s] of [[65,180,'CLIENT'],[385,180,'API'],[690,180,'DATA'],[385,400,'AGENT']]){c.strokeRect(x,y,230,100);c.font='27px monospace';c.fillText(s,x+35,y+60)}c.beginPath();c.moveTo(295,230);c.lineTo(385,230);c.moveTo(615,230);c.lineTo(690,230);c.moveTo(500,280);c.lineTo(500,400);c.stroke();c.fillStyle='#9a7658';c.font='22px monospace';c.fillText('build → learn → iterate',55,585)});panel(1.55,.9,-1.55,3.38,-3.22,boardtex.tex);
 // A single floor-to-ceiling link shelf on the right, all navigation lives here.
 const shelfMat=new T.MeshStandardMaterial({color:'#685140',roughness:.48});
@@ -103,20 +85,33 @@ for(const [key,d] of Object.entries(destinations)){
 const leaves=[];for(let [x,z,size] of [[4.25,1.6,1],[-4.1,-.25,.8]]){cyl(.22*size,.15*size,.4*size,x,.2*size,z,mats.ivory);for(let i=0;i<10;i++){const a=i*2.4;line([x,.3*size,z],[x+Math.sin(a)*.24*size,(.65+i*.05)*size,z+Math.cos(a)*.23*size],.012,mats.wood);const leaf=ball(.16,x+Math.sin(a)*.3*size,(.75+i*.05)*size,z+Math.cos(a)*.28*size,new T.MeshStandardMaterial({color:i%2?'#53674b':'#344b3b'}));leaf.scale.set(.45,1.6,.7);leaf.rotation.z=Math.sin(a)*.7;leaves.push(leaf)}}cyl(.23,.28,.05,-4.35,.04,-2.8,mats.black);cyl(.027,.027,2.8,-4.35,1.4,-2.8,mats.gold);cyl(.3,.45,.4,-4.35,2.92,-2.8,new T.MeshStandardMaterial({color:'#e4c399',emissive:'#9e642c',emissiveIntensity:.5}));
 const clock=new T.Group();clock.position.set(-3.65,3.48,-3.23);scene.add(clock);const face=cyl(.24,.24,.045,0,0,0,mats.ivory,clock);face.rotation.x=Math.PI/2;const hour=box(.018,.13,.015,0,.055,.04,mats.black,clock),minute=box(.012,.19,.015,0,.075,.05,mats.black,clock);
 box(.3,.018,.41,-2.48,1.438,-2.15,mats.ivory);for(let i=0;i<5;i++)box(.2,.002,.005,-2.48,1.45,-2.25+i*.04,mats.dark);box(.14,.018,.26,-.34,1.44,-1.58,mats.black);box(.11,.004,.21,-.34,1.452,-1.58,mats.glow);
-// Human character with continuous deforming clothing and planted-foot IK.
-// Sagar's room avatar is now a carved ivory chess knight.
+// Sagar's room avatar is a magical carved-ivory chess knight.
 let pos=new T.Vector3(-1.6,0,-.83);
 const knight=new T.Group();knight.name='Sagar chess knight';scene.add(knight);
-const knightIvory=new T.MeshPhysicalMaterial({color:'#eee5cf',roughness:.3,clearcoat:.5,clearcoatRoughness:.22});
+const knightIvory=new T.MeshPhysicalMaterial({color:'#eee5cf',roughness:.3,clearcoat:.5,clearcoatRoughness:.22,emissive:'#17374d',emissiveIntensity:.32});
 const knightTrim=new T.MeshStandardMaterial({color:'#bda276',metalness:.7,roughness:.3});
+const knightEye=new T.MeshStandardMaterial({color:'#d9fbff',emissive:'#52d9ff',emissiveIntensity:5,roughness:.2});
 const baseProfile=[[.001,.24],[.025,.28],[.07,.28],[.095,.24],[.12,.25],[.15,.23],[.18,.19],[.23,.16],[.28,.15],[.31,.20]].map(([y,r])=>new T.Vector2(r,y));
 const knightBase=new T.Mesh(new T.LatheGeometry(baseProfile,64),knightIvory);knight.add(knightBase);
 for(const y of [.035,.115]){const ring=new T.Mesh(new T.TorusGeometry(y<.1?.276:.244,.007,8,64),knightTrim);ring.rotation.x=Math.PI/2;ring.position.y=y;knight.add(ring)}
 const horse=new T.Shape();horse.moveTo(-.19,.29);horse.bezierCurveTo(-.25,.48,-.22,.76,-.15,.92);horse.lineTo(-.13,1.11);horse.lineTo(-.045,1.035);horse.lineTo(.03,1.12);horse.lineTo(.055,1.0);horse.bezierCurveTo(.17,.99,.21,.92,.28,.88);horse.lineTo(.39,.82);horse.quadraticCurveTo(.425,.785,.39,.74);horse.lineTo(.32,.705);horse.lineTo(.15,.77);horse.quadraticCurveTo(.095,.76,.11,.65);horse.bezierCurveTo(.13,.53,.24,.42,.19,.29);horse.closePath();
 const horseMesh=new T.Mesh(new T.ExtrudeGeometry(horse,{depth:.19,bevelEnabled:true,bevelThickness:.025,bevelSize:.022,bevelSegments:4,curveSegments:24,steps:1}),knightIvory);horseMesh.rotation.y=-Math.PI/2;horseMesh.position.x=.095;knight.add(horseMesh);
-for(const side of [-1,1]){const eye=ball(.019,side*.119,.936,.105,mats.black,knight);eye.scale.x=.28;const nostril=ball(.012,side*.116,.79,.355,mats.dark,knight);nostril.scale.x=.28;line([side*.12,.748,.32],[side*.12,.77,.20],.003,knightTrim,knight);for(let i=0;i<7;i++){const y=.51+i*.054;line([side*.12,y,-.21],[side*.123,y+.039,-.155],.004,knightTrim,knight)}}
+for(const side of [-1,1]){const eye=ball(.022,side*.119,.936,.105,knightEye,knight);eye.scale.x=.28;const nostril=ball(.012,side*.116,.79,.355,mats.dark,knight);nostril.scale.x=.28;line([side*.12,.748,.32],[side*.12,.77,.20],.003,knightTrim,knight);for(let i=0;i<7;i++){const y=.51+i*.054;line([side*.12,y,-.21],[side*.123,y+.039,-.155],.004,knightTrim,knight)}}
 knight.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});
-function updateKnight(time){let height=.01;if(['CODING','TURN','TURN_BACK'].includes(humanState))height=.742;else if(humanState==='STAND'){const u=T.MathUtils.smoothstep(humanClock,0,1.7);height=T.MathUtils.lerp(.742,.01,u)+Math.sin(u*Math.PI)*.10}else if(humanState==='SIT_DOWN'){const u=T.MathUtils.smoothstep(humanClock,.3,2);height=T.MathUtils.lerp(.01,.742,u)+Math.sin(u*Math.PI)*.10}knight.position.copy(pos);knight.position.y=height;knight.rotation.set(0,developerYaw,0);if(!reduced){if(humanState==='WALK')knight.position.y+=Math.abs(Math.sin(humanDistance*7))*.035;if(humanState==='PLAY')knight.rotation.x=Math.sin(time*2)*.035;if(humanState==='CODING')knight.rotation.x=Math.sin(time*.8)*.009}}
+// Layered additive forms create a soft aura without obscuring the knight.
+const auraCore=new T.Mesh(new T.SphereGeometry(.49,28,20),new T.MeshBasicMaterial({color:'#55d9ff',transparent:true,opacity:.075,blending:T.AdditiveBlending,depthWrite:false,side:T.BackSide}));auraCore.position.y=.57;auraCore.scale.set(.82,1.34,.82);knight.add(auraCore);
+const auraShell=new T.Mesh(new T.SphereGeometry(.64,28,20),new T.MeshBasicMaterial({color:'#8d67ff',transparent:true,opacity:.038,blending:T.AdditiveBlending,depthWrite:false,side:T.BackSide}));auraShell.position.y=.55;auraShell.scale.set(.9,1.18,.9);knight.add(auraShell);
+const auraRings=[
+ [.39,.010,.10,'#61e7ff',.24],
+ [.48,.008,.52,'#9a78ff',-.18],
+ [.37,.007,.93,'#f3d59b',.32]
+].map(([radius,tube,y,color,tilt],i)=>{const ring=new T.Mesh(new T.TorusGeometry(radius,tube,8,72),new T.MeshBasicMaterial({color,transparent:true,opacity:.62-i*.11,blending:T.AdditiveBlending,depthWrite:false}));ring.position.y=y;ring.rotation.set(Math.PI/2,tilt,tilt);ring.userData={tilt,phase:i*2.1};knight.add(ring);return ring});
+const spiralPoints=Array.from({length:56},(_,i)=>{const u=i/55,a=u*Math.PI*4.4,r=.34-.07*u;return new T.Vector3(Math.cos(a)*r,.04+u*1.08,Math.sin(a)*r)});
+const auraSpiral=new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3(spiralPoints),96,.006,5,false),new T.MeshBasicMaterial({color:'#7be9ff',transparent:true,opacity:.38,blending:T.AdditiveBlending,depthWrite:false}));knight.add(auraSpiral);
+const auraMoteGeometry=new T.SphereGeometry(.017,8,6),auraMotes=[];
+for(let i=0;i<28;i++){const mote=new T.Mesh(auraMoteGeometry,new T.MeshBasicMaterial({color:i%3===0?'#b18cff':i%3===1?'#78e8ff':'#ffe0a8',transparent:true,opacity:.86,blending:T.AdditiveBlending,depthWrite:false}));mote.userData={phase:i*.73,radius:.31+(i%6)*.036,speed:.42+(i%5)*.045,offset:(i*.173)%1.15};knight.add(mote);auraMotes.push(mote)}
+const auraLight=new T.PointLight('#68dcff',6,3.2,2);auraLight.position.y=.58;knight.add(auraLight);
+function updateKnight(time){const drift=reduced?0:Math.sin(time*1.35)*.052+Math.sin(time*.47)*.018;knight.position.copy(pos);knight.position.y=.69+drift;knight.rotation.set(reduced?0:Math.sin(time*.72)*.014,developerYaw,reduced?0:Math.sin(time*.9)*.012);const pulse=reduced?0:(Math.sin(time*2.15)+1)/2;auraCore.material.opacity=.06+pulse*.038;auraShell.material.opacity=.028+pulse*.024;auraCore.scale.set(.82+pulse*.055,1.34+pulse*.07,.82+pulse*.055);auraShell.rotation.y=reduced?0:-time*.12;auraSpiral.rotation.y=reduced?0:time*.34;auraRings.forEach((ring,i)=>{ring.rotation.x=Math.PI/2+(reduced?0:Math.sin(time*.62+ring.userData.phase)*.14);ring.rotation.z=ring.userData.tilt+(reduced?0:Math.cos(time*.48+ring.userData.phase)*.2);ring.scale.setScalar(1+(reduced?0:Math.sin(time*1.25+i)*.055))});auraMotes.forEach(mote=>{const d=mote.userData,a=time*d.speed+d.phase,r=d.radius*(1+(reduced?0:Math.sin(time*1.1+d.phase)*.11)),rise=reduced?d.offset:(d.offset+time*.11)%1.15;mote.position.set(Math.cos(a)*r,.02+rise,Math.sin(a)*r);mote.scale.setScalar(.55+(reduced?.25:(Math.sin(time*3+d.phase)+1)*.35))});auraLight.intensity=5.2+pulse*3.4;knightEye.emissiveIntensity=4.2+pulse*2.6}
 // The cat is the room's navigation character. Its paws and body share one
 // locomotion clock, while its face, ears and tail move on separate cycles.
 const fur=new T.MeshStandardMaterial({color:'#ecebe5',roughness:.96}),furLight=new T.MeshStandardMaterial({color:'#fffdf4',roughness:1}),furStripe=new T.MeshStandardMaterial({color:'#c9cbc7',roughness:.96});
@@ -163,8 +158,6 @@ const passHome=new T.Vector3(-1.6,ballRadius,-.19),passAway=new T.Vector3(-.55,b
 function startFootball(){footballClock=0;footballActive=true;catExpression='playful';catSetState('FOOTBALL');$('#status').textContent='A quick football break · knight ↔ cat'}
 function updateFootball(dt){if(!footballActive)return;footballClock+=dt;const cycle=footballClock%5.2;let t=0;if(cycle>=.8&&cycle<2.4)t=T.MathUtils.smoothstep((cycle-.8)/1.6,0,1);else if(cycle>=2.4&&cycle<3)t=1;else if(cycle>=3&&cycle<4.7)t=1-T.MathUtils.smoothstep((cycle-3)/1.7,0,1);const before=football.position.clone();football.position.lerpVectors(passHome,passAway,t);const travel=football.position.clone().sub(before);if(travel.lengthSq()>0){const axis=new T.Vector3(travel.z,0,-travel.x).normalize();football.rotateOnWorldAxis(axis,travel.length()/ballRadius)}catHeading=Math.atan2(football.position.x-catPos.x,football.position.z-catPos.z);if(footballClock>10.4||catQueued&&cycle>4.8){football.position.copy(passHome);footballActive=false;catFinishVisit()}}
 
-// A vacant chair gives the cat a safe resting place without interrupting the developer.
-const guestChair=chair.clone(true);guestChair.position.set(-3.55,0,1.12);guestChair.rotation.y=.12;scene.add(guestChair);
 function catBone(mesh,a,b){mesh.position.copy(a).add(b).multiplyScalar(.5);mesh.scale.y=a.distanceTo(b)/.4;mesh.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),b.clone().sub(a).normalize())}
 let catPos=new T.Vector3(-2.6,0,.65),catHeading=.55,catState='IDLE',catClock=0,catDistance=0,catSpeed=0,catRoute=[],catWaypoint=0,catGoal=null,catQueued=null,catRoamIndex=0,catWait=0;
 let catRoutePurpose='ROAM',catSequence='LINK',jumpPlan=[],jumpFrom=new T.Vector3(),jumpTo=new T.Vector3(),jumpDuration=.8,jumpVelocity=0,jumpArc=0,flightClock=0,landContinuation='',catExpression='relaxed';
@@ -193,14 +186,14 @@ function shelfFlightZ(u,y){
 const tapFeedback=new T.Group();scene.add(tapFeedback);tapFeedback.visible=false;
 const tapRings=[0,1].map(()=>{const mesh=new T.Mesh(new T.RingGeometry(.031,.039,40),new T.MeshBasicMaterial({color:'#b9f4ee',transparent:true,opacity:0,depthWrite:false}));tapFeedback.add(mesh);return mesh});
 function updateTapFeedback(){const active=catState==='TOUCH'&&catClock>=.78&&catClock<1.45&&catGoal;tapFeedback.visible=!!active;if(!active)return;const d=destinations[catGoal];tapFeedback.position.set(d.x+.136,d.y-.28,-2.493);tapRings.forEach((ring,i)=>{const t=T.MathUtils.clamp((catClock-.78-i*.13)/.54,0,1);ring.scale.setScalar(1+t*3.5);ring.material.opacity=t>0?(1-t)*.95:0})}
-function catFinishVisit(){catGoal=null;catSetState('IDLE');catWait=0;catExpression='relaxed';if(catQueued){const next=catQueued;catQueued=null;catNavigate(next)}else $('#status').textContent='Sagar’s knight is coding · the cat is exploring'}
+function catFinishVisit(){catGoal=null;catSetState('IDLE');catWait=0;catExpression='relaxed';if(catQueued){const next=catQueued;catQueued=null;catNavigate(next)}else $('#status').textContent='Sagar’s magical knight is hovering · the cat is exploring'}
 function finishJumpSequence(){if(catQueued){if(catPos.y>.05)catStartDown();else catFinishVisit();return}if(catSequence==='LINK')catSetState('TOUCH');else catFinishVisit()}
-function idleCatAction(){catWait=0;const n=catRoamIndex++%12;catGoal=null;if(n===0){catExpression='curious';catWalkTo(-3.95,-1.05,'ROAM','DESK')}else if(n===2){catExpression='playful';catSetState('STRETCH')}else if(n===4&&humanState==='CODING'){catWalkTo(-.39,.75,'ROAM','FOOTBALL')}else if(n===6&&humanState==='CODING'){catWalkTo(-2.6,1.05,'ROAM','LAP')}else if(n===8){catWalkTo(-2.6,1.05,'ROAM','CHAIR')}else if(n===10){catExpression='relaxed';catSetState('SIT')}else{catExpression='curious';const [x,z]=roamSpots[n%roamSpots.length];catWalkTo(x,z,'ROAM','ROAM')}}
+function idleCatAction(){catWait=0;const n=catRoamIndex++%12;catGoal=null;if(n===0){catExpression='curious';catWalkTo(-3.95,-1.05,'ROAM','DESK')}else if(n===2){catExpression='playful';catSetState('STRETCH')}else if(n===4&&humanState==='CODING'){catWalkTo(-.39,.75,'ROAM','FOOTBALL')}else if(n===6&&humanState==='CODING'){catWalkTo(-1.05,-.25,'ROAM','AURA')}else if(n===8){catWalkTo(-3.2,1.35,'ROAM','ROAM')}else if(n===10){catExpression='relaxed';catSetState('SIT')}else{catExpression='curious';const [x,z]=roamSpots[n%roamSpots.length];catWalkTo(x,z,'ROAM','ROAM')}}
 function updateCat(dt,time){
  catClock+=dt;catWait+=dt;updateFootball(dt);if(catState==='HUMAN_REST'&&humanState!=='PLAY'){catSetState('IDLE');catWait=0;}
  if(catState==='IDLE'&&catWait>4.5&&!reduced)idleCatAction();
  const walking=catState==='WALK'||catState==='ROAM';
- if(walking){const target=catRoute[catWaypoint];if(target){const delta=target.clone().sub(catPos),distance=delta.length(),toward=Math.atan2(delta.x,delta.z),turn=Math.atan2(Math.sin(toward-catHeading),Math.cos(toward-catHeading));catHeading+=T.MathUtils.clamp(turn,-dt*3.3,dt*3.3);const final=catWaypoint===catRoute.length-1;let desired=Math.min(catGoal?.65:.4,final?distance*2.5:.75);if(Math.abs(turn)>.55)desired*=Math.max(0,1-Math.abs(turn)/1.35);catSpeed=T.MathUtils.lerp(catSpeed,desired,Math.min(1,dt*5));const moved=Math.min(distance,catSpeed*dt);catPos.addScaledVector(delta.normalize(),moved);catDistance+=moved/CAT_SCALE;if(distance<.025)catWaypoint++}else{catSpeed=0;if(catRoutePurpose==='LINK'){catStartClimb()}else if(catRoutePurpose==='CHAIR'){beginJumpSequence([[-3.55,.81,1.06],[-2.6,0,1.05]],'CHAIR')}else if(catRoutePurpose==='GAP'){beginJumpSequence([[catPos.x+.55,0,catPos.z]],'GAP')}else if(catRoutePurpose==='DESK'){beginJumpSequence([[-3.12,1.41,-1.59],[-3.04,1.41,-1.59],[-3.95,0,-1.05]],'DESK')}else if(catRoutePurpose==='LAP'){beginJumpSequence([[-3.55,.81,1.06],[-2.6,0,1.05]],'LAP')}else if(catRoutePurpose==='FOOTBALL'){startFootball()}else if(catRoutePurpose==='HUMAN'){catHeading=Math.PI;catExpression='affectionate';catSetState('HUMAN_REST')}else if(catRoutePurpose==='CALL'){catExpression='affectionate';catSetState('AFFECTION')}else{catExpression='curious';catSetState('SNIFF')}}}
+ if(walking){const target=catRoute[catWaypoint];if(target){const delta=target.clone().sub(catPos),distance=delta.length(),toward=Math.atan2(delta.x,delta.z),turn=Math.atan2(Math.sin(toward-catHeading),Math.cos(toward-catHeading));catHeading+=T.MathUtils.clamp(turn,-dt*3.3,dt*3.3);const final=catWaypoint===catRoute.length-1;let desired=Math.min(catGoal?.65:.4,final?distance*2.5:.75);if(Math.abs(turn)>.55)desired*=Math.max(0,1-Math.abs(turn)/1.35);catSpeed=T.MathUtils.lerp(catSpeed,desired,Math.min(1,dt*5));const moved=Math.min(distance,catSpeed*dt);catPos.addScaledVector(delta.normalize(),moved);catDistance+=moved/CAT_SCALE;if(distance<.025)catWaypoint++}else{catSpeed=0;if(catRoutePurpose==='LINK'){catStartClimb()}else if(catRoutePurpose==='GAP'){beginJumpSequence([[catPos.x+.55,0,catPos.z]],'GAP')}else if(catRoutePurpose==='DESK'){beginJumpSequence([[-3.12,1.41,-1.59],[-3.04,1.41,-1.59],[-3.95,0,-1.05]],'DESK')}else if(catRoutePurpose==='FOOTBALL'){startFootball()}else if(catRoutePurpose==='AURA'){catHeading=Math.atan2(pos.x-catPos.x,pos.z-catPos.z);catExpression='curious';catSetState('LOOK')}else if(catRoutePurpose==='HUMAN'){catHeading=Math.PI;catExpression='affectionate';catSetState('HUMAN_REST')}else if(catRoutePurpose==='CALL'){catExpression='affectionate';catSetState('AFFECTION')}else{catExpression='curious';catSetState('SNIFF')}}}
  if(catState==='NOTICE'){const delta=jumpTo.clone().sub(catPos);if(Math.hypot(delta.x,delta.z)>.07){const goal=Math.atan2(delta.x,delta.z);catHeading+=Math.atan2(Math.sin(goal-catHeading),Math.cos(goal-catHeading))*Math.min(1,dt*6)}if(catClock>.28)catSetState('CROUCH')}
  if(catState==='CROUCH'&&catClock>.38)catSetState('PUSH_OFF');
  if(catState==='PUSH_OFF'&&catClock>.09){flightClock=0;catSetState('JUMP')}
@@ -213,7 +206,7 @@ function updateCat(dt,time){
  if(flightClock>=jumpDuration){catPos.copy(jumpTo);catExpression='relaxed';catSetState('LANDING')}
  }
  if(catState==='LANDING'&&catClock>.3){if(jumpPlan.length)catSetState('PERCH');else finishJumpSequence()}
- if(catState==='PERCH'&&catClock>(catSequence==='LAP'?7:catSequence==='DESK'?3.5:catSequence==='CHAIR'?2.8:.6))prepareNextJump();
+ if(catState==='PERCH'&&catClock>(catSequence==='DESK'?3.5:.6))prepareNextJump();
  if(catState==='TOUCH'){catHeading+=Math.atan2(Math.sin(Math.PI/2-catHeading),Math.cos(Math.PI/2-catHeading))*Math.min(1,dt*8);catExpression='curious';if(catClock>1.45){if(catQueued)catStartDown();else{openDestination(catGoal);catSetState('READING');$('#status').textContent='The cat tapped '+destinations[catGoal].label}}}
  updateTapFeedback();
  if(catState==='LOOK'&&catClock>.65)catExpression='curious';
@@ -221,11 +214,11 @@ function updateCat(dt,time){
  if(catState==='STRETCH'&&catPos.y===0&&!reduced){const forward=new T.Vector3(Math.sin(catHeading)*.58,0,Math.cos(catHeading)*.58).add(catPos);const safe=pathTo(forward.x,forward.z,catPos);if(safe&&safe.length<6){beginJumpSequence([[forward.x,0,forward.z]],'POUNCE')}else{catSetState('IDLE');catWait=0}}
  else{catSetState('IDLE');catWait=0}
  }
- if(catState==='PERCH'){catExpression=catSequence==='LAP'?'affectionate':catSequence==='DESK'?'playful':'relaxed';const wanted=catSequence==='LAP'?0:catSequence==='LINK'?Math.PI/2:catHeading;catHeading+=Math.atan2(Math.sin(wanted-catHeading),Math.cos(wanted-catHeading))*Math.min(1,dt*4)}
+ if(catState==='PERCH'){catExpression=catSequence==='DESK'?'playful':'relaxed';const wanted=catSequence==='LINK'?Math.PI/2:catHeading;catHeading+=Math.atan2(Math.sin(wanted-catHeading),Math.cos(wanted-catHeading))*Math.min(1,dt*4)}
  cat.position.copy(catPos);cat.rotation.y=catHeading;
  const jump=catState==='JUMP',flight=jump?flightClock/jumpDuration:0,pre=catState==='CROUCH'?T.MathUtils.smoothstep(catClock,0,.38):catState==='PUSH_OFF'?1-T.MathUtils.smoothstep(catClock,0,.09):0;
  const landing=catState==='LANDING'?Math.sin(Math.min(1,catClock/.3)*Math.PI):0;
- const sitting=catState==='HUMAN_REST'||catState==='SIT'||catState==='PERCH'&&['CHAIR','LAP'].includes(catSequence);
+ const sitting=catState==='HUMAN_REST'||catState==='SIT';
  const stretch=catState==='STRETCH'?Math.sin(Math.min(1,catClock/2.4)*Math.PI):0;
  catBody.position.y=-pre*.105-landing*.08-stretch*.025+(walking?Math.sin(catDistance/.54*Math.PI*4)*.006:Math.sin(time*1.9)*.003);
  catBody.rotation.x=jump?T.MathUtils.lerp(-.18,.22,flight):pre*.09+landing*.06+stretch*.13;
@@ -234,7 +227,7 @@ function updateCat(dt,time){
  catTorso.position.y=T.MathUtils.lerp(catTorso.position.y,sitting?.29:.33,dt*5);
  catHead.position.y=T.MathUtils.lerp(catHead.position.y,sitting?.49:catState==='SNIFF'?.32:.42,dt*5);
  catHead.rotation.x=catState==='SNIFF'?.23:catState==='NOTICE'?-.17:jump?-.08:0;
- catHead.rotation.y=['SNIFF','IDLE','LOOK','PERCH'].includes(catState)?Math.sin(time*.7)*.17:0; if(catState==='TOUCH'&&catPos.y>.1){catHead.rotation.y=-.55;catHead.rotation.x=-.08;}if(catState==='PERCH'&&catSequence==='LAP')catHead.rotation.x=-.18; if(catState==='PERCH'&&catSequence==='DESK')catHead.rotation.x=.15+Math.sin(catClock*2)*.1;
+ catHead.rotation.y=['SNIFF','IDLE','LOOK','PERCH'].includes(catState)?Math.sin(time*.7)*.17:0; if(catState==='TOUCH'&&catPos.y>.1){catHead.rotation.y=-.55;catHead.rotation.x=-.08;}if(catState==='PERCH'&&catSequence==='DESK')catHead.rotation.x=.15+Math.sin(catClock*2)*.1;
  catHead.rotation.z=catState==='AFFECTION'?Math.sin(catClock*2.5)*.15:catState==='READING'?Math.sin(time*.6)*.045:0;
  const blink=reduced?1:Math.sin(time*1.09)>.996?.09:1;
  lids.forEach(l=>{l.visible=blink<.5;l.scale.y=.85});catIrides.forEach(iris=>iris.scale.y=.84*blink);catEyes.forEach((eye,i)=>{eye.scale.y=(catExpression==='relaxed'?.57:.74)*blink;catPupils[i].scale.y=1.6*blink;catPupils[i].scale.x=(catExpression==='excited'||catExpression==='surprised')?.72:.4;catEars[i].rotation.z=(i?1:-1)*(catExpression==='cautious'?.2:.025)+(Math.sin(time*1.7+i)> .94?Math.sin(time*11)*.045:0)});
@@ -250,7 +243,6 @@ function updateCat(dt,time){
  if(stretch&&leg.front)foot.z+=stretch*.11;
  if(catState==='FOOTBALL'&&leg.front&&leg.side===1){const phase=footballClock%5.2;const tap=Math.max(0,1-Math.abs(phase-3)/.32);foot.z+=tap*.15;foot.y+=tap*.08}
  if(catState==='PERCH'&&catSequence==='DESK'&&leg.front&&leg.side===1){const tap=Math.max(0,Math.sin(catClock*3));foot.z+=tap*.07;foot.y+=tap*.06}
- if(catState==='PERCH'&&catSequence==='LAP'&&leg.front){foot.y+=Math.max(0,Math.sin(catClock*3+leg.side*Math.PI/2))*.012}
  if(sitting&&!leg.front){foot.z-=.06;foot.x*=1.12}
  if(catState==='TOUCH'&&leg.front&&leg.side===-1){
  const d=destinations[catGoal],reach=T.MathUtils.smoothstep(catClock,.25,.78)*(1-T.MathUtils.smoothstep(catClock,1.02,1.36));
@@ -282,39 +274,35 @@ async function unlockVirtualSpace(username,password){let packed;try{privateAsset
 function showVirtualSpace(url){if(spaceObjectUrl)URL.revokeObjectURL(spaceObjectUrl);spaceObjectUrl=url;const page=$('#virtual-space');page.style.setProperty('--space-photo',`url("${url}")`);page.hidden=false;document.body.classList.add('space-open');for(const selector of ['#scene','header','main','footer'])$(selector)?.setAttribute('inert','');if(panelEl.open)panelEl.close();requestAnimationFrame(()=>page.classList.add('visible'));$('#space-exit').focus()}
 function closeVirtualSpace(){const page=$('#virtual-space');page.classList.remove('visible');page.hidden=true;document.body.classList.remove('space-open');for(const selector of ['#scene','header','main','footer'])$(selector)?.removeAttribute('inert');page.style.removeProperty('--space-photo');if(spaceObjectUrl){URL.revokeObjectURL(spaceObjectUrl);spaceObjectUrl=null}destinations.Space.button?.focus()}
 $('#space-exit').onclick=closeVirtualSpace;addEventListener('keydown',event=>{if(event.key==='Escape'&&!$('#virtual-space').hidden){event.preventDefault();closeVirtualSpace()}});
-// Furniture-aware paths for the cat, including both chairs.
-function pathTo(tx,tz,origin=pos){const step=.25,min=-4.5,max=4.5,zmin=-2.75,zmax=2.75;const snap=(x,z)=>[Math.round((x-min)/step),Math.round((z-zmin)/step)];const world=([x,z])=>new T.Vector3(min+x*step,0,zmin+z*step);const blocked=(x,z)=>(x>-3.8&&x<.55&&z>-2.95&&z<-1.23)||(x>.2&&x<4.2&&z<-2.15)||Math.hypot(x+1.6,z+.83)<.57||Math.hypot(x+3.55,z-1.12)<.59||(x<-3.65&&z>-.75&&z<.25)||(x>3.85&&z>1.1&&z<2.1);const start=snap(origin.x,origin.z),end=snap(tx,tz),key=a=>a.join(','),open=[start],came=new Map(),g=new Map([[key(start),0]]);let found=false;while(open.length){open.sort((a,b)=>(g.get(key(a))+Math.hypot(a[0]-end[0],a[1]-end[1]))-(g.get(key(b))+Math.hypot(b[0]-end[0],b[1]-end[1])));const a=open.shift();if(key(a)===key(end)){found=true;break}for(const [dx,dz]of [[1,0],[-1,0],[0,1],[0,-1]]){const b=[a[0]+dx,a[1]+dz],w=world(b);if(w.x<min||w.x>max||w.z<zmin||w.z>zmax||blocked(w.x,w.z))continue;const cost=g.get(key(a))+1;if(cost<(g.get(key(b))??Infinity)){came.set(key(b),a);g.set(key(b),cost);if(!open.some(q=>key(q)===key(b)))open.push(b)}}}if(!found)return null;const out=[];let node=end;while(key(node)!==key(start)){out.unshift(world(node));node=came.get(key(node))}out.push(new T.Vector3(tx,0,tz));return out}
+// Furniture-aware floor paths for the cat. The levitating knight needs no floor clearance.
+function pathTo(tx,tz,origin=pos){const step=.25,min=-4.5,max=4.5,zmin=-2.75,zmax=2.75;const snap=(x,z)=>[Math.round((x-min)/step),Math.round((z-zmin)/step)];const world=([x,z])=>new T.Vector3(min+x*step,0,zmin+z*step);const blocked=(x,z)=>(x>-3.8&&x<.55&&z>-2.95&&z<-1.23)||(x>.2&&x<4.2&&z<-2.15)||(x<-3.65&&z>-.75&&z<.25)||(x>3.85&&z>1.1&&z<2.1);const start=snap(origin.x,origin.z),end=snap(tx,tz),key=a=>a.join(','),open=[start],came=new Map(),g=new Map([[key(start),0]]);let found=false;while(open.length){open.sort((a,b)=>(g.get(key(a))+Math.hypot(a[0]-end[0],a[1]-end[1]))-(g.get(key(b))+Math.hypot(b[0]-end[0],b[1]-end[1])));const a=open.shift();if(key(a)===key(end)){found=true;break}for(const [dx,dz]of [[1,0],[-1,0],[0,1],[0,-1]]){const b=[a[0]+dx,a[1]+dz],w=world(b);if(w.x<min||w.x>max||w.z<zmin||w.z>zmax||blocked(w.x,w.z))continue;const cost=g.get(key(a))+1;if(cost<(g.get(key(b))??Infinity)){came.set(key(b),a);g.set(key(b),cost);if(!open.some(q=>key(q)===key(b)))open.push(b)}}}if(!found)return null;const out=[];let node=end;while(key(node)!==key(start)){out.unshift(world(node));node=came.get(key(node))}out.push(new T.Vector3(tx,0,tz));return out}
 panelEl.querySelector('.close').onclick=()=>panelEl.close();panelEl.addEventListener('close',()=>{if(catState==='READING')catStartDown()});
-$('#think').textContent='◌  Call the cat';$('#think').onclick=()=>{if(catState==='IDLE'||catState==='ROAM'){if(humanState==='CODING')catWalkTo(-2.6,1.05,'ROAM','LAP');else catWalkTo(pos.x+.4,pos.z+.4,'ROAM','CALL')}};
+$('#think').textContent='◌  Call the cat';$('#think').onclick=()=>{if(catState==='IDLE'||catState==='ROAM')catWalkTo(pos.x+.55,pos.z+.55,'ROAM','CALL')};
 function updateMotion(){ $('#motion').setAttribute('aria-pressed',String(reduced));$('#motion').textContent=reduced?'Motion: reduced':'Reduce motion'}updateMotion();$('#motion').onclick=()=>{reduced=!reduced;updateMotion()};$('#quality').onclick=()=>{const low=$('#quality').textContent.includes('high');renderer.setPixelRatio(low?1:Math.min(devicePixelRatio,2));renderer.shadowMap.enabled=!low;bodyFur.count=low?2200:6500;faceFur.count=low?600:1800;chestFur.count=low?300:900;$('#quality').textContent='Quality: '+(low?'low':'high')};$('#reset').onclick=()=>{camYaw=camPitch=0};
 let dragging=false,lastX=0,lastY=0;renderer.domElement.addEventListener('pointerdown',e=>{dragging=true;lastX=e.clientX;lastY=e.clientY;renderer.domElement.setPointerCapture(e.pointerId)});renderer.domElement.addEventListener('pointermove',e=>{if(dragging){camYaw=T.MathUtils.clamp(camYaw-(e.clientX-lastX)*.003,-.9,.9);camPitch=T.MathUtils.clamp(camPitch+(e.clientY-lastY)*.002,-.2,.2);lastX=e.clientX;lastY=e.clientY}});renderer.domElement.addEventListener('pointerup',()=>dragging=false);renderer.domElement.addEventListener('pointercancel',()=>dragging=false);
 function resize(){renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.fov=innerWidth<760?75:58;camera.updateProjectionMatrix()}addEventListener('resize',resize);
-// Human activity controller: seated -> stand -> walk -> look -> play -> return.
-let humanState='CODING',humanClock=0,humanRoute=[],humanStep=0,humanDistance=0,humanSpeed=0,humanHip=.8,humanReturn=false,humanPetClock=0,humanBreakCount=0;
-const deskHome=new T.Vector3(-1.6,0,-.83),standingHome=new T.Vector3(-1.6,0,-.12);
+// Magical activity controller: hover -> turn -> glide -> look -> play -> return.
+let humanState='CODING',humanClock=0,humanRoute=[],humanStep=0,humanSpeed=0,humanReturn=false,humanPetClock=0,humanBreakCount=0;
+const deskHome=new T.Vector3(-1.6,0,-.83);
 
 function humanSet(next){humanState=next;humanClock=0;humanPetClock=0;humanSpeed=0}
-function startHumanBreak(){if(humanState!=='CODING'||footballActive||catRoutePurpose==='LAP'&&catState!=='IDLE')return;humanBreakCount++;humanSet('TURN');$('#status').textContent='Your knight is taking a short break'}
+function startHumanBreak(){if(humanState!=='CODING'||footballActive)return;humanBreakCount++;humanSet('TURN');$('#status').textContent='Your magical knight is gliding through the room'}
 function humanWalk(points,returning=false){humanRoute=points.map(p=>new T.Vector3(p[0],0,p[1]));humanStep=0;humanReturn=returning;humanSet('WALK')}
 function humanYawTo(target,dt){developerYaw+=T.MathUtils.clamp(Math.atan2(Math.sin(target-developerYaw),Math.cos(target-developerYaw)),-dt*2.5,dt*2.5)}
 function updateHuman(dt,time){
- humanClock+=dt;const smooth=(a,b)=>T.MathUtils.smoothstep(humanClock,a,b);
+ humanClock+=dt;
  if(humanState==='CODING'&&humanClock>14+(humanBreakCount%3)*2&&!reduced&&!catGoal&&!footballActive&&catPos.y===0)startHumanBreak();
- if(humanState==='TURN'){humanYawTo(0,dt);chair.rotation.y=developerYaw-Math.PI;if(humanClock>1.5)humanSet('STAND')}
- if(humanState==='STAND'){const u=smooth(0,1.7);pos.lerpVectors(deskHome,standingHome,u);humanHip=T.MathUtils.lerp(.8,.87,u);if(humanClock>1.7)humanWalk(humanBreakCount%2?[[-.6,.4],[2,.4],[3.85,-.55]]:[[-.6,.4],[2,.4]])}
- if(humanState==='WALK'){const target=humanRoute[humanStep];if(target){const delta=target.clone().sub(pos),distance=delta.length(),yaw=Math.atan2(delta.x,delta.z);humanYawTo(yaw,dt);const error=Math.abs(Math.atan2(Math.sin(yaw-developerYaw),Math.cos(yaw-developerYaw)));const desired=Math.min(.66,distance*2)*Math.max(0,1-error/1.1);humanSpeed=T.MathUtils.damp(humanSpeed,desired,5,dt);const move=Math.min(distance,humanSpeed*dt);pos.addScaledVector(delta.normalize(),move);humanDistance+=move;if(distance<.028)humanStep++}else{if(humanReturn)humanSet('SIT_DOWN');else if(pos.x>3)humanSet('WINDOW');else humanSet('PLAY')}}
+ if(humanState==='TURN'){humanYawTo(0,dt);if(humanClock>1.2)humanWalk(humanBreakCount%2?[[-.6,.4],[2,.4],[3.85,-.55]]:[[-.6,.4],[2,.4]])}
+ if(humanState==='WALK'){const target=humanRoute[humanStep];if(target){const delta=target.clone().sub(pos),distance=delta.length(),yaw=Math.atan2(delta.x,delta.z);humanYawTo(yaw,dt);const error=Math.abs(Math.atan2(Math.sin(yaw-developerYaw),Math.cos(yaw-developerYaw)));const desired=Math.min(.72,distance*2)*Math.max(0,1-error/1.1);humanSpeed=T.MathUtils.damp(humanSpeed,desired,5,dt);const move=Math.min(distance,humanSpeed*dt);pos.addScaledVector(delta.normalize(),move);if(distance<.028)humanStep++}else{if(humanReturn)humanSet('TURN_BACK');else if(pos.x>3)humanSet('WINDOW');else humanSet('PLAY')}}
  if(humanState==='WINDOW'){humanYawTo(Math.PI/2,dt);if(humanClock>4.5)humanWalk([[2,.4]])}
- if(humanState==='PLAY'){humanYawTo(0,dt);if(catRoutePurpose!=='HUMAN'&&!catGoal&&catPos.y===0&&['IDLE','ROAM','LOOK','SNIFF','SIT'].includes(catState))catWalkTo(2.23,.78,'ROAM','HUMAN');if(catState==='HUMAN_REST')humanPetClock+=dt;if(humanPetClock>6||humanClock>30)humanWalk([[-.6,.4],[-1.6,-.12]],true)}
- if(humanState==='SIT_DOWN'){humanYawTo(0,dt);const u=smooth(.3,2);pos.lerpVectors(standingHome,deskHome,u);humanHip=T.MathUtils.lerp(.87,.8,u);if(humanClock>2)humanSet('TURN_BACK')}
- if(humanState==='TURN_BACK'){humanYawTo(Math.PI,dt);chair.rotation.y=developerYaw-Math.PI;if(humanClock>1.6){humanSet('CODING');pos.copy(deskHome)}}
- const seated=humanState==='CODING',walking=humanState==='WALK',petting=humanState==='PLAY'&&catRoutePurpose==='HUMAN'&&catPos.distanceTo(pos)<.8&&!catGoal;
- const social=seated&&(footballActive||catRoutePurpose==='LAP'&&['ROAM','NOTICE','CROUCH','PUSH_OFF','JUMP','LANDING','PERCH'].includes(catState));
- if(seated){developerYaw=T.MathUtils.damp(developerYaw,social?0:Math.PI,3,dt);chair.rotation.y=developerYaw-Math.PI;humanHip=.8}
- else if(!['STAND','SIT_DOWN','TURN','TURN_BACK'].includes(humanState))humanHip=T.MathUtils.damp(humanHip,petting?.48:.87,4,dt);
+ if(humanState==='PLAY'){humanYawTo(0,dt);if(catRoutePurpose!=='HUMAN'&&!catGoal&&catPos.y===0&&['IDLE','ROAM','LOOK','SNIFF','SIT'].includes(catState))catWalkTo(2.23,.78,'ROAM','HUMAN');if(catState==='HUMAN_REST')humanPetClock+=dt;if(humanPetClock>6||humanClock>30)humanWalk([[-.6,.4],[deskHome.x,deskHome.z]],true)}
+ if(humanState==='TURN_BACK'){humanYawTo(Math.PI,dt);if(humanClock>1.4){humanSet('CODING');pos.copy(deskHome);$('#status').textContent='Sagar’s magical knight is hovering · the cat is exploring'}}
+ const stationed=humanState==='CODING',social=stationed&&footballActive;
+ if(stationed)developerYaw=T.MathUtils.damp(developerYaw,social?0:Math.PI,3,dt);
  updateKnight(time);
 
 }
-const breakButton=document.createElement('button');breakButton.textContent='Take a break';breakButton.onclick=startHumanBreak;$('.controls').append(breakButton);
+const breakButton=document.createElement('button');breakButton.textContent='Let knight roam';breakButton.onclick=startHumanBreak;$('.controls').append(breakButton);
 let last=performance.now(),time=0,lastCode=-1;
 function animate(now){requestAnimationFrame(animate);const dt=Math.min((now-last)/1000,.05);last=now;time+=dt;
 updateCat(dt,time);
