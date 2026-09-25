@@ -85,33 +85,102 @@ for(const [key,d] of Object.entries(destinations)){
 const leaves=[];for(let [x,z,size] of [[4.25,1.6,1],[-4.1,-.25,.8]]){cyl(.22*size,.15*size,.4*size,x,.2*size,z,mats.ivory);for(let i=0;i<10;i++){const a=i*2.4;line([x,.3*size,z],[x+Math.sin(a)*.24*size,(.65+i*.05)*size,z+Math.cos(a)*.23*size],.012,mats.wood);const leaf=ball(.16,x+Math.sin(a)*.3*size,(.75+i*.05)*size,z+Math.cos(a)*.28*size,new T.MeshStandardMaterial({color:i%2?'#53674b':'#344b3b'}));leaf.scale.set(.45,1.6,.7);leaf.rotation.z=Math.sin(a)*.7;leaves.push(leaf)}}cyl(.23,.28,.05,-4.35,.04,-2.8,mats.black);cyl(.027,.027,2.8,-4.35,1.4,-2.8,mats.gold);cyl(.3,.45,.4,-4.35,2.92,-2.8,new T.MeshStandardMaterial({color:'#e4c399',emissive:'#9e642c',emissiveIntensity:.5}));
 const clock=new T.Group();clock.position.set(-3.65,3.48,-3.23);scene.add(clock);const face=cyl(.24,.24,.045,0,0,0,mats.ivory,clock);face.rotation.x=Math.PI/2;const hour=box(.018,.13,.015,0,.055,.04,mats.black,clock),minute=box(.012,.19,.015,0,.075,.05,mats.black,clock);
 box(.3,.018,.41,-2.48,1.438,-2.15,mats.ivory);for(let i=0;i<5;i++)box(.2,.002,.005,-2.48,1.45,-2.25+i*.04,mats.dark);box(.14,.018,.26,-.34,1.44,-1.58,mats.black);box(.11,.004,.21,-.34,1.452,-1.58,mats.glow);
-// Sagar's room avatar is a magical carved-ivory chess knight.
+// Sagar's avatar is a celestial cyber-knight: ivory sculpture, angular armor,
+// sacred geometry and a self-contained anti-gravity aura.
 let pos=new T.Vector3(-1.6,0,-.83);
-const knight=new T.Group();knight.name='Sagar chess knight';scene.add(knight);
-const knightIvory=new T.MeshPhysicalMaterial({color:'#eee5cf',roughness:.3,clearcoat:.5,clearcoatRoughness:.22,emissive:'#17374d',emissiveIntensity:.32});
-const knightTrim=new T.MeshStandardMaterial({color:'#bda276',metalness:.7,roughness:.3});
-const knightEye=new T.MeshStandardMaterial({color:'#d9fbff',emissive:'#52d9ff',emissiveIntensity:5,roughness:.2});
+const knight=new T.Group();knight.name='Sagar divine cyber knight';knight.scale.setScalar(1.04);scene.add(knight);
+const knightIvory=new T.MeshPhysicalMaterial({color:'#eee8da',roughness:.24,metalness:.18,clearcoat:.72,clearcoatRoughness:.16,emissive:'#142f43',emissiveIntensity:.4});
+const knightArmor=new T.MeshPhysicalMaterial({color:'#102331',roughness:.2,metalness:.92,clearcoat:.8,clearcoatRoughness:.12,emissive:'#071b31',emissiveIntensity:1.05,flatShading:true});
+const knightSilver=new T.MeshPhysicalMaterial({color:'#a9c4cd',roughness:.19,metalness:.88,clearcoat:.7,emissive:'#17384a',emissiveIntensity:.5,flatShading:true});
+const knightTrim=new T.MeshStandardMaterial({color:'#d4aa5f',metalness:.82,roughness:.25,emissive:'#614018',emissiveIntensity:.72});
+const knightEye=new T.MeshStandardMaterial({color:'#e7feff',emissive:'#46e6ff',emissiveIntensity:6.2,roughness:.12});
+const techCyan=new T.MeshStandardMaterial({color:'#9cf5ff',emissive:'#31dfff',emissiveIntensity:3.2,metalness:.35,roughness:.16});
+const techViolet=new T.MeshStandardMaterial({color:'#c1a8ff',emissive:'#745cff',emissiveIntensity:2.8,metalness:.35,roughness:.16});
+const divineGold=new T.MeshStandardMaterial({color:'#ffe1a1',emissive:'#e79b36',emissiveIntensity:2.1,metalness:.7,roughness:.18});
+const energyMat=(color,opacity,side=T.DoubleSide)=>new T.MeshBasicMaterial({color,transparent:true,opacity,blending:T.AdditiveBlending,depthWrite:false,side});
+
+// Faceted armored pedestal and levitation core.
 const baseProfile=[[.001,.24],[.025,.28],[.07,.28],[.095,.24],[.12,.25],[.15,.23],[.18,.19],[.23,.16],[.28,.15],[.31,.20]].map(([y,r])=>new T.Vector2(r,y));
 const knightBase=new T.Mesh(new T.LatheGeometry(baseProfile,64),knightIvory);knight.add(knightBase);
-for(const y of [.035,.115]){const ring=new T.Mesh(new T.TorusGeometry(y<.1?.276:.244,.007,8,64),knightTrim);ring.rotation.x=Math.PI/2;ring.position.y=y;knight.add(ring)}
+const armorSkirt=new T.Mesh(new T.CylinderGeometry(.272,.323,.17,8,1,false),knightArmor);armorSkirt.position.y=.17;knight.add(armorSkirt);
+for(let i=0;i<8;i++){const a=i*Math.PI/4,panel=new T.Mesh(new T.BoxGeometry(.095,.145,.032),i%2?knightSilver:knightArmor);panel.position.set(Math.sin(a)*.285,.17,Math.cos(a)*.285);panel.rotation.y=a;knight.add(panel)}
+for(const [y,r,material] of [[.025,.285,divineGold],[.105,.258,techCyan],[.285,.218,knightTrim]]){const ring=new T.Mesh(new T.TorusGeometry(r,.008,8,64),material);ring.rotation.x=Math.PI/2;ring.position.y=y;knight.add(ring)}
+const antiGravityCore=new T.Mesh(new T.OctahedronGeometry(.095,1),techCyan);antiGravityCore.position.y=-.12;antiGravityCore.scale.y=1.4;knight.add(antiGravityCore);
+const coreOrbit=new T.Mesh(new T.TorusKnotGeometry(.115,.012,64,7,2,3),divineGold);coreOrbit.position.y=-.12;coreOrbit.rotation.x=Math.PI/2;coreOrbit.scale.y=.55;knight.add(coreOrbit);
+const collar=new T.Mesh(new T.TorusGeometry(.215,.028,8,40),knightArmor);collar.rotation.x=Math.PI/2;collar.position.y=.315;knight.add(collar);
+
+// Original knight silhouette, upgraded with cybernetic facial armor and circuitry.
 const horse=new T.Shape();horse.moveTo(-.19,.29);horse.bezierCurveTo(-.25,.48,-.22,.76,-.15,.92);horse.lineTo(-.13,1.11);horse.lineTo(-.045,1.035);horse.lineTo(.03,1.12);horse.lineTo(.055,1.0);horse.bezierCurveTo(.17,.99,.21,.92,.28,.88);horse.lineTo(.39,.82);horse.quadraticCurveTo(.425,.785,.39,.74);horse.lineTo(.32,.705);horse.lineTo(.15,.77);horse.quadraticCurveTo(.095,.76,.11,.65);horse.bezierCurveTo(.13,.53,.24,.42,.19,.29);horse.closePath();
 const horseMesh=new T.Mesh(new T.ExtrudeGeometry(horse,{depth:.19,bevelEnabled:true,bevelThickness:.025,bevelSize:.022,bevelSegments:4,curveSegments:24,steps:1}),knightIvory);horseMesh.rotation.y=-Math.PI/2;horseMesh.position.x=.095;knight.add(horseMesh);
-for(const side of [-1,1]){const eye=ball(.022,side*.119,.936,.105,knightEye,knight);eye.scale.x=.28;const nostril=ball(.012,side*.116,.79,.355,mats.dark,knight);nostril.scale.x=.28;line([side*.12,.748,.32],[side*.12,.77,.20],.003,knightTrim,knight);for(let i=0;i<7;i++){const y=.51+i*.054;line([side*.12,y,-.21],[side*.123,y+.039,-.155],.004,knightTrim,knight)}}
+const visor=box(.288,.038,.026,0,.936,.133,techCyan,knight);visor.rotation.x=-.05;
+const reactor=new T.Mesh(new T.OctahedronGeometry(.078,1),techCyan);reactor.position.set(0,.47,.21);reactor.scale.set(.72,1,.42);knight.add(reactor);
+const reactorRing=new T.Mesh(new T.TorusGeometry(.112,.009,8,48),divineGold);reactorRing.position.set(0,.47,.203);knight.add(reactorRing);
+for(const side of [-1,1]){
+ const eye=ball(.024,side*.119,.936,.105,knightEye,knight);eye.scale.x=.3;
+ const nostril=ball(.012,side*.116,.79,.355,techViolet,knight);nostril.scale.x=.28;
+ const cheekPlate=new T.Mesh(new T.OctahedronGeometry(.105,0),knightArmor);cheekPlate.position.set(side*.126,.71,.1);cheekPlate.scale.set(.34,1.05,.86);knight.add(cheekPlate);
+ const temple=new T.Mesh(new T.CylinderGeometry(.034,.034,.026,12),divineGold);temple.position.set(side*.139,.875,.04);temple.rotation.z=Math.PI/2;knight.add(temple);
+ line([side*.128,.43,-.03],[side*.132,.61,.1],.0045,techCyan,knight);line([side*.132,.61,.1],[side*.132,.735,.19],.0045,techViolet,knight);line([side*.12,.748,.32],[side*.12,.77,.20],.0035,divineGold,knight);
+ for(let i=0;i<7;i++){const y=.51+i*.054;line([side*.12,y,-.21],[side*.123,y+.039,-.155],.004,divineGold,knight)}
+}
+const maneFins=[];for(let i=0;i<6;i++){const fin=new T.Mesh(new T.ConeGeometry(.038,.16,4),i%2?knightSilver:knightArmor);fin.position.set(0,.55+i*.09,-.2);fin.rotation.x=-.22;fin.scale.z=1.28;knight.add(fin);maneFins.push(fin)}
+const crownCrest=new T.Mesh(new T.ConeGeometry(.06,.24,4),divineGold);crownCrest.position.set(0,1.16,-.075);crownCrest.rotation.y=Math.PI/4;knight.add(crownCrest);
 knight.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});
-// Layered additive forms create a soft aura without obscuring the knight.
-const auraCore=new T.Mesh(new T.SphereGeometry(.49,28,20),new T.MeshBasicMaterial({color:'#55d9ff',transparent:true,opacity:.075,blending:T.AdditiveBlending,depthWrite:false,side:T.BackSide}));auraCore.position.y=.57;auraCore.scale.set(.82,1.34,.82);knight.add(auraCore);
-const auraShell=new T.Mesh(new T.SphereGeometry(.64,28,20),new T.MeshBasicMaterial({color:'#8d67ff',transparent:true,opacity:.038,blending:T.AdditiveBlending,depthWrite:false,side:T.BackSide}));auraShell.position.y=.55;auraShell.scale.set(.9,1.18,.9);knight.add(auraShell);
+
+// Rotating sacred-tech halo with orbit nodes, rays and crown spires.
+const divineHalo=new T.Group();divineHalo.name='sacred technology halo';divineHalo.position.set(0,.74,-.245);knight.add(divineHalo);
+const haloInner=new T.Mesh(new T.RingGeometry(.34,.358,96),energyMat('#77efff',.76));divineHalo.add(haloInner);
+const haloOuter=new T.Mesh(new T.RingGeometry(.515,.535,96),energyMat('#ffd98a',.72));divineHalo.add(haloOuter);
+const haloArcs=[];for(let i=0;i<4;i++){const arc=new T.Mesh(new T.RingGeometry(.425,.455,64,1,i*Math.PI/2+.12,Math.PI*.34),energyMat(i%2?'#a985ff':'#8ff5ff',.62));arc.userData.phase=i*.9;divineHalo.add(arc);haloArcs.push(arc)}
+for(let i=0;i<8;i++){const a=i*Math.PI/4;line([Math.cos(a)*.365,Math.sin(a)*.365,0],[Math.cos(a)*.505,Math.sin(a)*.505,0],.0055,i%2?divineGold:techCyan,divineHalo)}
+const haloNodes=[];for(let i=0;i<12;i++){const a=i*Math.PI/6,node=new T.Mesh(new T.OctahedronGeometry(i%3===0?.029:.021,0),i%3===0?divineGold:techCyan);node.position.set(Math.cos(a)*.447,Math.sin(a)*.447,.012);divineHalo.add(node);haloNodes.push(node)}
+for(let i=-2;i<=2;i++){const spire=new T.Mesh(new T.ConeGeometry(.018+(.002*(2-Math.abs(i))),.13+(.025*(2-Math.abs(i))),4),i===0?divineGold:techCyan);spire.position.set(i*.09,.57+(.018*(2-Math.abs(i))),0);spire.rotation.z=-i*.05;divineHalo.add(spire)}
+
+// Holographic wings fan out as curved energy feathers behind the armor.
+const energyWings=[],energyFeathers=[];
+for(const side of [-1,1]){
+ const wing=new T.Group();wing.position.set(0,.46,-.19);wing.userData.side=side;knight.add(wing);energyWings.push(wing);
+ for(let i=0;i<5;i++){
+  const tipY=-.1+i*.17,reach=.56+i*.085,root=new T.Vector3(side*.18,0,0),mid=new T.Vector3(side*(.34+i*.04),tipY*.42+.07,-.012),tip=new T.Vector3(side*reach,tipY,-.035-i*.008);
+  const featherBeam=new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3([root,mid,tip]),30,.012-i*.0009,6,false),i%2?divineGold:techCyan);wing.add(featherBeam);
+  const shape=new T.Shape();shape.moveTo(side*.19,-.018);shape.quadraticCurveTo(side*(reach*.68),tipY*.42,side*reach,tipY);shape.quadraticCurveTo(side*(reach*.76),tipY-.075,side*.2,.035);shape.closePath();
+  const feather=new T.Mesh(new T.ShapeGeometry(shape,14),energyMat(i%2?'#ffcf74':'#6eeaff',.085));feather.position.z=-.025-i*.009;feather.userData={baseOpacity:.075+i*.006,phase:i*.72+(side>0?0:Math.PI)};wing.add(feather);energyFeathers.push(feather);
+ }
+}
+
+// Multi-layer divine aura: energy column, shells, rings, twin helices and motes.
+const auraColumn=new T.Mesh(new T.CylinderGeometry(.16,.48,1.62,32,1,true),energyMat('#5fe6ff',.045));auraColumn.position.y=.46;knight.add(auraColumn);
+const auraCore=new T.Mesh(new T.SphereGeometry(.53,30,22),energyMat('#55d9ff',.082,T.BackSide));auraCore.position.y=.57;auraCore.scale.set(.88,1.42,.88);knight.add(auraCore);
+const auraShell=new T.Mesh(new T.SphereGeometry(.72,30,22),energyMat('#8d67ff',.045,T.BackSide));auraShell.position.y=.56;auraShell.scale.set(.96,1.2,.96);knight.add(auraShell);
 const auraRings=[
- [.39,.010,.10,'#61e7ff',.24],
- [.48,.008,.52,'#9a78ff',-.18],
- [.37,.007,.93,'#f3d59b',.32]
-].map(([radius,tube,y,color,tilt],i)=>{const ring=new T.Mesh(new T.TorusGeometry(radius,tube,8,72),new T.MeshBasicMaterial({color,transparent:true,opacity:.62-i*.11,blending:T.AdditiveBlending,depthWrite:false}));ring.position.y=y;ring.rotation.set(Math.PI/2,tilt,tilt);ring.userData={tilt,phase:i*2.1};knight.add(ring);return ring});
-const spiralPoints=Array.from({length:56},(_,i)=>{const u=i/55,a=u*Math.PI*4.4,r=.34-.07*u;return new T.Vector3(Math.cos(a)*r,.04+u*1.08,Math.sin(a)*r)});
-const auraSpiral=new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3(spiralPoints),96,.006,5,false),new T.MeshBasicMaterial({color:'#7be9ff',transparent:true,opacity:.38,blending:T.AdditiveBlending,depthWrite:false}));knight.add(auraSpiral);
-const auraMoteGeometry=new T.SphereGeometry(.017,8,6),auraMotes=[];
-for(let i=0;i<28;i++){const mote=new T.Mesh(auraMoteGeometry,new T.MeshBasicMaterial({color:i%3===0?'#b18cff':i%3===1?'#78e8ff':'#ffe0a8',transparent:true,opacity:.86,blending:T.AdditiveBlending,depthWrite:false}));mote.userData={phase:i*.73,radius:.31+(i%6)*.036,speed:.42+(i%5)*.045,offset:(i*.173)%1.15};knight.add(mote);auraMotes.push(mote)}
-const auraLight=new T.PointLight('#68dcff',6,3.2,2);auraLight.position.y=.58;knight.add(auraLight);
-function updateKnight(time){const drift=reduced?0:Math.sin(time*1.35)*.052+Math.sin(time*.47)*.018;knight.position.copy(pos);knight.position.y=.69+drift;knight.rotation.set(reduced?0:Math.sin(time*.72)*.014,developerYaw,reduced?0:Math.sin(time*.9)*.012);const pulse=reduced?0:(Math.sin(time*2.15)+1)/2;auraCore.material.opacity=.06+pulse*.038;auraShell.material.opacity=.028+pulse*.024;auraCore.scale.set(.82+pulse*.055,1.34+pulse*.07,.82+pulse*.055);auraShell.rotation.y=reduced?0:-time*.12;auraSpiral.rotation.y=reduced?0:time*.34;auraRings.forEach((ring,i)=>{ring.rotation.x=Math.PI/2+(reduced?0:Math.sin(time*.62+ring.userData.phase)*.14);ring.rotation.z=ring.userData.tilt+(reduced?0:Math.cos(time*.48+ring.userData.phase)*.2);ring.scale.setScalar(1+(reduced?0:Math.sin(time*1.25+i)*.055))});auraMotes.forEach(mote=>{const d=mote.userData,a=time*d.speed+d.phase,r=d.radius*(1+(reduced?0:Math.sin(time*1.1+d.phase)*.11)),rise=reduced?d.offset:(d.offset+time*.11)%1.15;mote.position.set(Math.cos(a)*r,.02+rise,Math.sin(a)*r);mote.scale.setScalar(.55+(reduced?.25:(Math.sin(time*3+d.phase)+1)*.35))});auraLight.intensity=5.2+pulse*3.4;knightEye.emissiveIntensity=4.2+pulse*2.6}
+ [.38,.010,.02,'#61e7ff',.22],
+ [.51,.009,.29,'#9875ff',-.18],
+ [.63,.007,.57,'#ffd58c',.3],
+ [.48,.007,.84,'#65edff',-.26],
+ [.36,.006,1.08,'#ffe2a6',.2]
+].map(([radius,tube,y,color,tilt],i)=>{const ring=new T.Mesh(new T.TorusGeometry(radius,tube,8,80),energyMat(color,.65-i*.075,T.FrontSide));ring.position.y=y;ring.rotation.set(Math.PI/2,tilt,tilt);ring.userData={tilt,phase:i*1.43};knight.add(ring);return ring});
+const auraSpirals=[];for(const [direction,color,offset] of [[1,'#73ecff',0],[-1,'#a784ff',Math.PI]]){const spiralPoints=Array.from({length:64},(_,i)=>{const u=i/63,a=direction*u*Math.PI*4.8+offset,r=.37-.08*u;return new T.Vector3(Math.cos(a)*r,.01+u*1.16,Math.sin(a)*r)}),spiral=new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3(spiralPoints),112,.006,5,false),energyMat(color,.42,T.FrontSide));spiral.userData.direction=direction;knight.add(spiral);auraSpirals.push(spiral)}
+const moteMaterials=['#b18cff','#78efff','#ffe0a8'].map(color=>energyMat(color,.9,T.FrontSide)),auraMoteGeometry=new T.SphereGeometry(.016,8,6),auraMotes=[];
+for(let i=0;i<36;i++){const mote=new T.Mesh(auraMoteGeometry,moteMaterials[i%3]);mote.userData={phase:i*.69,radius:.34+(i%7)*.045,speed:.38+(i%6)*.042,offset:(i*.151)%1.22};knight.add(mote);auraMotes.push(mote)}
+const orbitCrystals=[];for(let i=0;i<7;i++){const crystal=new T.Mesh(new T.OctahedronGeometry(i%3===0?.045:.032,0),i%2?techViolet:divineGold);crystal.userData={phase:i*Math.PI*2/7,radius:.57+(i%2)*.07,speed:.23+(i%3)*.045,height:.48+(i%3)*.17};knight.add(crystal);orbitCrystals.push(crystal)}
+const auraLight=new T.PointLight('#67dfff',7.5,3.5,2);auraLight.position.y=.58;knight.add(auraLight);
+const divineLight=new T.PointLight('#ffd28a',4.2,2.8,2);divineLight.position.set(0,.92,-.12);knight.add(divineLight);
+
+function updateKnight(time){
+ const drift=reduced?0:Math.sin(time*1.28)*.055+Math.sin(time*.43)*.02;
+ knight.position.copy(pos);knight.position.y=.7+drift;knight.rotation.set(reduced?0:Math.sin(time*.68)*.015,developerYaw,reduced?0:Math.sin(time*.86)*.013);
+ const pulse=reduced?.45:(Math.sin(time*2.05)+1)/2;
+ knightIvory.emissiveIntensity=.34+pulse*.18;knightArmor.emissiveIntensity=.85+pulse*.45;knightEye.emissiveIntensity=5.2+pulse*3.4;techCyan.emissiveIntensity=2.7+pulse*2;techViolet.emissiveIntensity=2.3+pulse*1.6;divineGold.emissiveIntensity=1.7+pulse*1.5;
+ antiGravityCore.rotation.y=reduced?.4:time*1.8;antiGravityCore.rotation.x=reduced?.2:time*.72;coreOrbit.rotation.z=reduced?.2:-time*.9;reactor.rotation.z=reduced?0:time*1.25;reactorRing.rotation.z=reduced?0:-time*.62;
+ maneFins.forEach((fin,i)=>fin.scale.y=1+(reduced?0:Math.sin(time*1.6+i*.55)*.08));
+ divineHalo.rotation.z=reduced?.08:time*.055;haloArcs.forEach((arc,i)=>arc.rotation.z=reduced?0:Math.sin(time*.44+arc.userData.phase)*.16);haloNodes.forEach((node,i)=>{node.rotation.z=reduced?0:time*(i%2?.55:-.55);node.scale.setScalar(.82+pulse*.35)});
+ energyWings.forEach((wing,i)=>{const side=wing.userData.side;wing.rotation.z=side*(.045+(reduced?0:Math.sin(time*.78+i*Math.PI)*.035));wing.rotation.y=side*(reduced?0:Math.sin(time*.5+i)*.045)});energyFeathers.forEach(feather=>{feather.material.opacity=feather.userData.baseOpacity+(reduced?0:(Math.sin(time*1.75+feather.userData.phase)+1)*.035)});
+ auraColumn.material.opacity=.032+pulse*.035;auraColumn.scale.set(1+pulse*.08,1,1+pulse*.08);auraCore.material.opacity=.065+pulse*.055;auraShell.material.opacity=.032+pulse*.032;auraCore.scale.set(.88+pulse*.07,1.42+pulse*.09,.88+pulse*.07);auraShell.rotation.y=reduced?0:-time*.11;
+ auraSpirals.forEach(spiral=>spiral.rotation.y=reduced?0:time*.28*spiral.userData.direction);auraRings.forEach((ring,i)=>{ring.rotation.x=Math.PI/2+(reduced?0:Math.sin(time*.57+ring.userData.phase)*.16);ring.rotation.z=ring.userData.tilt+(reduced?0:Math.cos(time*.43+ring.userData.phase)*.22);ring.scale.setScalar(1+(reduced?0:Math.sin(time*1.18+i)*.06))});
+ auraMotes.forEach(mote=>{const d=mote.userData,a=time*d.speed+d.phase,r=d.radius*(1+(reduced?0:Math.sin(time+d.phase)*.12)),rise=reduced?d.offset:(d.offset+time*.105)%1.22;mote.position.set(Math.cos(a)*r,.01+rise,Math.sin(a)*r);mote.scale.setScalar(.48+(reduced?.3:(Math.sin(time*3.1+d.phase)+1)*.38))});
+ orbitCrystals.forEach((crystal,i)=>{const d=crystal.userData,a=d.phase+(reduced?0:time*d.speed);crystal.position.set(Math.cos(a)*d.radius,d.height+Math.sin(a*1.7+i)*.12,Math.sin(a)*d.radius);crystal.rotation.x=reduced?.3:time*(.55+i*.035);crystal.rotation.y=reduced?.2:-time*(.7+i*.025);crystal.scale.setScalar(.78+pulse*.38)});
+ auraLight.intensity=6.3+pulse*4.2;divineLight.intensity=3.4+pulse*3.1;
+}
 // The cat is the room's navigation character. Its paws and body share one
 // locomotion clock, while its face, ears and tail move on separate cycles.
 const fur=new T.MeshStandardMaterial({color:'#ecebe5',roughness:.96}),furLight=new T.MeshStandardMaterial({color:'#fffdf4',roughness:1}),furStripe=new T.MeshStandardMaterial({color:'#c9cbc7',roughness:.96});
@@ -186,7 +255,7 @@ function shelfFlightZ(u,y){
 const tapFeedback=new T.Group();scene.add(tapFeedback);tapFeedback.visible=false;
 const tapRings=[0,1].map(()=>{const mesh=new T.Mesh(new T.RingGeometry(.031,.039,40),new T.MeshBasicMaterial({color:'#b9f4ee',transparent:true,opacity:0,depthWrite:false}));tapFeedback.add(mesh);return mesh});
 function updateTapFeedback(){const active=catState==='TOUCH'&&catClock>=.78&&catClock<1.45&&catGoal;tapFeedback.visible=!!active;if(!active)return;const d=destinations[catGoal];tapFeedback.position.set(d.x+.136,d.y-.28,-2.493);tapRings.forEach((ring,i)=>{const t=T.MathUtils.clamp((catClock-.78-i*.13)/.54,0,1);ring.scale.setScalar(1+t*3.5);ring.material.opacity=t>0?(1-t)*.95:0})}
-function catFinishVisit(){catGoal=null;catSetState('IDLE');catWait=0;catExpression='relaxed';if(catQueued){const next=catQueued;catQueued=null;catNavigate(next)}else $('#status').textContent='Sagar’s magical knight is hovering · the cat is exploring'}
+function catFinishVisit(){catGoal=null;catSetState('IDLE');catWait=0;catExpression='relaxed';if(catQueued){const next=catQueued;catQueued=null;catNavigate(next)}else $('#status').textContent='Sagar’s divine cyber-knight is hovering · the cat is exploring'}
 function finishJumpSequence(){if(catQueued){if(catPos.y>.05)catStartDown();else catFinishVisit();return}if(catSequence==='LINK')catSetState('TOUCH');else catFinishVisit()}
 function idleCatAction(){catWait=0;const n=catRoamIndex++%12;catGoal=null;if(n===0){catExpression='curious';catWalkTo(-3.95,-1.05,'ROAM','DESK')}else if(n===2){catExpression='playful';catSetState('STRETCH')}else if(n===4&&humanState==='CODING'){catWalkTo(-.39,.75,'ROAM','FOOTBALL')}else if(n===6&&humanState==='CODING'){catWalkTo(-1.05,-.25,'ROAM','AURA')}else if(n===8){catWalkTo(-3.2,1.35,'ROAM','ROAM')}else if(n===10){catExpression='relaxed';catSetState('SIT')}else{catExpression='curious';const [x,z]=roamSpots[n%roamSpots.length];catWalkTo(x,z,'ROAM','ROAM')}}
 function updateCat(dt,time){
@@ -278,7 +347,7 @@ $('#space-exit').onclick=closeVirtualSpace;addEventListener('keydown',event=>{if
 function pathTo(tx,tz,origin=pos){const step=.25,min=-4.5,max=4.5,zmin=-2.75,zmax=2.75;const snap=(x,z)=>[Math.round((x-min)/step),Math.round((z-zmin)/step)];const world=([x,z])=>new T.Vector3(min+x*step,0,zmin+z*step);const blocked=(x,z)=>(x>-3.8&&x<.55&&z>-2.95&&z<-1.23)||(x>.2&&x<4.2&&z<-2.15)||(x<-3.65&&z>-.75&&z<.25)||(x>3.85&&z>1.1&&z<2.1);const start=snap(origin.x,origin.z),end=snap(tx,tz),key=a=>a.join(','),open=[start],came=new Map(),g=new Map([[key(start),0]]);let found=false;while(open.length){open.sort((a,b)=>(g.get(key(a))+Math.hypot(a[0]-end[0],a[1]-end[1]))-(g.get(key(b))+Math.hypot(b[0]-end[0],b[1]-end[1])));const a=open.shift();if(key(a)===key(end)){found=true;break}for(const [dx,dz]of [[1,0],[-1,0],[0,1],[0,-1]]){const b=[a[0]+dx,a[1]+dz],w=world(b);if(w.x<min||w.x>max||w.z<zmin||w.z>zmax||blocked(w.x,w.z))continue;const cost=g.get(key(a))+1;if(cost<(g.get(key(b))??Infinity)){came.set(key(b),a);g.set(key(b),cost);if(!open.some(q=>key(q)===key(b)))open.push(b)}}}if(!found)return null;const out=[];let node=end;while(key(node)!==key(start)){out.unshift(world(node));node=came.get(key(node))}out.push(new T.Vector3(tx,0,tz));return out}
 panelEl.querySelector('.close').onclick=()=>panelEl.close();panelEl.addEventListener('close',()=>{if(catState==='READING')catStartDown()});
 $('#think').textContent='◌  Call the cat';$('#think').onclick=()=>{if(catState==='IDLE'||catState==='ROAM')catWalkTo(pos.x+.55,pos.z+.55,'ROAM','CALL')};
-function updateMotion(){ $('#motion').setAttribute('aria-pressed',String(reduced));$('#motion').textContent=reduced?'Motion: reduced':'Reduce motion'}updateMotion();$('#motion').onclick=()=>{reduced=!reduced;updateMotion()};$('#quality').onclick=()=>{const low=$('#quality').textContent.includes('high');renderer.setPixelRatio(low?1:Math.min(devicePixelRatio,2));renderer.shadowMap.enabled=!low;bodyFur.count=low?2200:6500;faceFur.count=low?600:1800;chestFur.count=low?300:900;$('#quality').textContent='Quality: '+(low?'low':'high')};$('#reset').onclick=()=>{camYaw=camPitch=0};
+function updateMotion(){ $('#motion').setAttribute('aria-pressed',String(reduced));$('#motion').textContent=reduced?'Motion: reduced':'Reduce motion'}updateMotion();$('#motion').onclick=()=>{reduced=!reduced;updateMotion()};$('#quality').onclick=()=>{const low=$('#quality').textContent.includes('high');renderer.setPixelRatio(low?1:Math.min(devicePixelRatio,2));renderer.shadowMap.enabled=!low;bodyFur.count=low?2200:6500;faceFur.count=low?600:1800;chestFur.count=low?300:900;auraMotes.forEach((m,i)=>m.visible=!low||i<14);orbitCrystals.forEach((c,i)=>c.visible=!low||i<4);energyFeathers.forEach((f,i)=>f.visible=!low||i%2===0);haloArcs.forEach((a,i)=>a.visible=!low||i%2===0);$('#quality').textContent='Quality: '+(low?'low':'high')};$('#reset').onclick=()=>{camYaw=camPitch=0};
 let dragging=false,lastX=0,lastY=0;renderer.domElement.addEventListener('pointerdown',e=>{dragging=true;lastX=e.clientX;lastY=e.clientY;renderer.domElement.setPointerCapture(e.pointerId)});renderer.domElement.addEventListener('pointermove',e=>{if(dragging){camYaw=T.MathUtils.clamp(camYaw-(e.clientX-lastX)*.003,-.9,.9);camPitch=T.MathUtils.clamp(camPitch+(e.clientY-lastY)*.002,-.2,.2);lastX=e.clientX;lastY=e.clientY}});renderer.domElement.addEventListener('pointerup',()=>dragging=false);renderer.domElement.addEventListener('pointercancel',()=>dragging=false);
 function resize(){renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.fov=innerWidth<760?75:58;camera.updateProjectionMatrix()}addEventListener('resize',resize);
 // Magical activity controller: hover -> turn -> glide -> look -> play -> return.
@@ -286,7 +355,7 @@ let humanState='CODING',humanClock=0,humanRoute=[],humanStep=0,humanSpeed=0,huma
 const deskHome=new T.Vector3(-1.6,0,-.83);
 
 function humanSet(next){humanState=next;humanClock=0;humanPetClock=0;humanSpeed=0}
-function startHumanBreak(){if(humanState!=='CODING'||footballActive)return;humanBreakCount++;humanSet('TURN');$('#status').textContent='Your magical knight is gliding through the room'}
+function startHumanBreak(){if(humanState!=='CODING'||footballActive)return;humanBreakCount++;humanSet('TURN');$('#status').textContent='Your divine cyber-knight is gliding through the room'}
 function humanWalk(points,returning=false){humanRoute=points.map(p=>new T.Vector3(p[0],0,p[1]));humanStep=0;humanReturn=returning;humanSet('WALK')}
 function humanYawTo(target,dt){developerYaw+=T.MathUtils.clamp(Math.atan2(Math.sin(target-developerYaw),Math.cos(target-developerYaw)),-dt*2.5,dt*2.5)}
 function updateHuman(dt,time){
@@ -296,7 +365,7 @@ function updateHuman(dt,time){
  if(humanState==='WALK'){const target=humanRoute[humanStep];if(target){const delta=target.clone().sub(pos),distance=delta.length(),yaw=Math.atan2(delta.x,delta.z);humanYawTo(yaw,dt);const error=Math.abs(Math.atan2(Math.sin(yaw-developerYaw),Math.cos(yaw-developerYaw)));const desired=Math.min(.72,distance*2)*Math.max(0,1-error/1.1);humanSpeed=T.MathUtils.damp(humanSpeed,desired,5,dt);const move=Math.min(distance,humanSpeed*dt);pos.addScaledVector(delta.normalize(),move);if(distance<.028)humanStep++}else{if(humanReturn)humanSet('TURN_BACK');else if(pos.x>3)humanSet('WINDOW');else humanSet('PLAY')}}
  if(humanState==='WINDOW'){humanYawTo(Math.PI/2,dt);if(humanClock>4.5)humanWalk([[2,.4]])}
  if(humanState==='PLAY'){humanYawTo(0,dt);if(catRoutePurpose!=='HUMAN'&&!catGoal&&catPos.y===0&&['IDLE','ROAM','LOOK','SNIFF','SIT'].includes(catState))catWalkTo(2.23,.78,'ROAM','HUMAN');if(catState==='HUMAN_REST')humanPetClock+=dt;if(humanPetClock>6||humanClock>30)humanWalk([[-.6,.4],[deskHome.x,deskHome.z]],true)}
- if(humanState==='TURN_BACK'){humanYawTo(Math.PI,dt);if(humanClock>1.4){humanSet('CODING');pos.copy(deskHome);$('#status').textContent='Sagar’s magical knight is hovering · the cat is exploring'}}
+ if(humanState==='TURN_BACK'){humanYawTo(Math.PI,dt);if(humanClock>1.4){humanSet('CODING');pos.copy(deskHome);$('#status').textContent='Sagar’s divine cyber-knight is hovering · the cat is exploring'}}
  const stationed=humanState==='CODING',social=stationed&&footballActive;
  if(stationed)developerYaw=T.MathUtils.damp(developerYaw,social?0:Math.PI,3,dt);
  updateKnight(time);
