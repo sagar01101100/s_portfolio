@@ -85,101 +85,120 @@ for(const [key,d] of Object.entries(destinations)){
 const leaves=[];for(let [x,z,size] of [[4.25,1.6,1],[-4.1,-.25,.8]]){cyl(.22*size,.15*size,.4*size,x,.2*size,z,mats.ivory);for(let i=0;i<10;i++){const a=i*2.4;line([x,.3*size,z],[x+Math.sin(a)*.24*size,(.65+i*.05)*size,z+Math.cos(a)*.23*size],.012,mats.wood);const leaf=ball(.16,x+Math.sin(a)*.3*size,(.75+i*.05)*size,z+Math.cos(a)*.28*size,new T.MeshStandardMaterial({color:i%2?'#53674b':'#344b3b'}));leaf.scale.set(.45,1.6,.7);leaf.rotation.z=Math.sin(a)*.7;leaves.push(leaf)}}cyl(.23,.28,.05,-4.35,.04,-2.8,mats.black);cyl(.027,.027,2.8,-4.35,1.4,-2.8,mats.gold);cyl(.3,.45,.4,-4.35,2.92,-2.8,new T.MeshStandardMaterial({color:'#e4c399',emissive:'#9e642c',emissiveIntensity:.5}));
 const clock=new T.Group();clock.position.set(-3.65,3.48,-3.23);scene.add(clock);const face=cyl(.24,.24,.045,0,0,0,mats.ivory,clock);face.rotation.x=Math.PI/2;const hour=box(.018,.13,.015,0,.055,.04,mats.black,clock),minute=box(.012,.19,.015,0,.075,.05,mats.black,clock);
 box(.3,.018,.41,-2.48,1.438,-2.15,mats.ivory);for(let i=0;i<5;i++)box(.2,.002,.005,-2.48,1.45,-2.25+i*.04,mats.dark);box(.14,.018,.26,-.34,1.44,-1.58,mats.black);box(.11,.004,.21,-.34,1.452,-1.58,mats.glow);
-// Sagar's avatar is a celestial cyber-knight: ivory sculpture, angular armor,
-// sacred geometry and a self-contained anti-gravity aura.
+// Sagar's avatar is a forged cyber-knight. The detail lives on the sculpture;
+// the surrounding aura stays deliberately sparse so its silhouette reads first.
 let pos=new T.Vector3(-1.6,0,-.83);
-const knight=new T.Group();knight.name='Sagar divine cyber knight';knight.scale.setScalar(1.04);scene.add(knight);
-const knightIvory=new T.MeshPhysicalMaterial({color:'#eee8da',roughness:.24,metalness:.18,clearcoat:.72,clearcoatRoughness:.16,emissive:'#142f43',emissiveIntensity:.4});
-const knightArmor=new T.MeshPhysicalMaterial({color:'#102331',roughness:.2,metalness:.92,clearcoat:.8,clearcoatRoughness:.12,emissive:'#071b31',emissiveIntensity:1.05,flatShading:true});
-const knightSilver=new T.MeshPhysicalMaterial({color:'#a9c4cd',roughness:.19,metalness:.88,clearcoat:.7,emissive:'#17384a',emissiveIntensity:.5,flatShading:true});
-const knightTrim=new T.MeshStandardMaterial({color:'#d4aa5f',metalness:.82,roughness:.25,emissive:'#614018',emissiveIntensity:.72});
-const knightEye=new T.MeshStandardMaterial({color:'#e7feff',emissive:'#46e6ff',emissiveIntensity:6.2,roughness:.12});
-const techCyan=new T.MeshStandardMaterial({color:'#9cf5ff',emissive:'#31dfff',emissiveIntensity:3.2,metalness:.35,roughness:.16});
-const techViolet=new T.MeshStandardMaterial({color:'#c1a8ff',emissive:'#745cff',emissiveIntensity:2.8,metalness:.35,roughness:.16});
-const divineGold=new T.MeshStandardMaterial({color:'#ffe1a1',emissive:'#e79b36',emissiveIntensity:2.1,metalness:.7,roughness:.18});
+const knight=new T.Group();knight.name='Sagar ember cyber knight';knight.scale.setScalar(1.12);scene.add(knight);
+const knightCore=new T.MeshPhysicalMaterial({color:'#211715',roughness:.27,metalness:.84,clearcoat:.64,clearcoatRoughness:.15,emissive:'#3f1007',emissiveIntensity:.38,flatShading:true});
+const knightArmor=new T.MeshPhysicalMaterial({color:'#572414',roughness:.21,metalness:.92,clearcoat:.78,clearcoatRoughness:.12,emissive:'#641806',emissiveIntensity:.72,flatShading:true});
+const knightBronze=new T.MeshPhysicalMaterial({color:'#a6461a',roughness:.19,metalness:.88,clearcoat:.82,clearcoatRoughness:.1,emissive:'#7b2108',emissiveIntensity:.72,flatShading:true});
+const knightEdge=new T.MeshStandardMaterial({color:'#ffc061',emissive:'#ff6a0b',emissiveIntensity:3.5,metalness:.52,roughness:.14});
+const knightHot=new T.MeshStandardMaterial({color:'#fff0bd',emissive:'#ff7417',emissiveIntensity:5.2,metalness:.35,roughness:.12});
+const knightEye=new T.MeshStandardMaterial({color:'#fff8dc',emissive:'#ff8a1e',emissiveIntensity:8.5,roughness:.08});
 const energyMat=(color,opacity,side=T.DoubleSide)=>new T.MeshBasicMaterial({color,transparent:true,opacity,blending:T.AdditiveBlending,depthWrite:false,side});
 
-// Faceted armored pedestal and levitation core.
-const baseProfile=[[.001,.24],[.025,.28],[.07,.28],[.095,.24],[.12,.25],[.15,.23],[.18,.19],[.23,.16],[.28,.15],[.31,.20]].map(([y,r])=>new T.Vector2(r,y));
-const knightBase=new T.Mesh(new T.LatheGeometry(baseProfile,64),knightIvory);knight.add(knightBase);
-const armorSkirt=new T.Mesh(new T.CylinderGeometry(.272,.323,.17,8,1,false),knightArmor);armorSkirt.position.y=.17;knight.add(armorSkirt);
-for(let i=0;i<8;i++){const a=i*Math.PI/4,panel=new T.Mesh(new T.BoxGeometry(.095,.145,.032),i%2?knightSilver:knightArmor);panel.position.set(Math.sin(a)*.285,.17,Math.cos(a)*.285);panel.rotation.y=a;knight.add(panel)}
-for(const [y,r,material] of [[.025,.285,divineGold],[.105,.258,techCyan],[.285,.218,knightTrim]]){const ring=new T.Mesh(new T.TorusGeometry(r,.008,8,64),material);ring.rotation.x=Math.PI/2;ring.position.y=y;knight.add(ring)}
-const antiGravityCore=new T.Mesh(new T.OctahedronGeometry(.095,1),techCyan);antiGravityCore.position.y=-.12;antiGravityCore.scale.y=1.4;knight.add(antiGravityCore);
-const coreOrbit=new T.Mesh(new T.TorusKnotGeometry(.115,.012,64,7,2,3),divineGold);coreOrbit.position.y=-.12;coreOrbit.rotation.x=Math.PI/2;coreOrbit.scale.y=.55;knight.add(coreOrbit);
-const collar=new T.Mesh(new T.TorusGeometry(.215,.028,8,40),knightArmor);collar.rotation.x=Math.PI/2;collar.position.y=.315;knight.add(collar);
-
-// Original knight silhouette, upgraded with cybernetic facial armor and circuitry.
-const horse=new T.Shape();horse.moveTo(-.19,.29);horse.bezierCurveTo(-.25,.48,-.22,.76,-.15,.92);horse.lineTo(-.13,1.11);horse.lineTo(-.045,1.035);horse.lineTo(.03,1.12);horse.lineTo(.055,1.0);horse.bezierCurveTo(.17,.99,.21,.92,.28,.88);horse.lineTo(.39,.82);horse.quadraticCurveTo(.425,.785,.39,.74);horse.lineTo(.32,.705);horse.lineTo(.15,.77);horse.quadraticCurveTo(.095,.76,.11,.65);horse.bezierCurveTo(.13,.53,.24,.42,.19,.29);horse.closePath();
-const horseMesh=new T.Mesh(new T.ExtrudeGeometry(horse,{depth:.19,bevelEnabled:true,bevelThickness:.025,bevelSize:.022,bevelSegments:4,curveSegments:24,steps:1}),knightIvory);horseMesh.rotation.y=-Math.PI/2;horseMesh.position.x=.095;knight.add(horseMesh);
-const visor=box(.288,.038,.026,0,.936,.133,techCyan,knight);visor.rotation.x=-.05;
-const reactor=new T.Mesh(new T.OctahedronGeometry(.078,1),techCyan);reactor.position.set(0,.47,.21);reactor.scale.set(.72,1,.42);knight.add(reactor);
-const reactorRing=new T.Mesh(new T.TorusGeometry(.112,.009,8,48),divineGold);reactorRing.position.set(0,.47,.203);knight.add(reactorRing);
-for(const side of [-1,1]){
- const eye=ball(.024,side*.119,.936,.105,knightEye,knight);eye.scale.x=.3;
- const nostril=ball(.012,side*.116,.79,.355,techViolet,knight);nostril.scale.x=.28;
- const cheekPlate=new T.Mesh(new T.OctahedronGeometry(.105,0),knightArmor);cheekPlate.position.set(side*.126,.71,.1);cheekPlate.scale.set(.34,1.05,.86);knight.add(cheekPlate);
- const temple=new T.Mesh(new T.CylinderGeometry(.034,.034,.026,12),divineGold);temple.position.set(side*.139,.875,.04);temple.rotation.z=Math.PI/2;knight.add(temple);
- line([side*.128,.43,-.03],[side*.132,.61,.1],.0045,techCyan,knight);line([side*.132,.61,.1],[side*.132,.735,.19],.0045,techViolet,knight);line([side*.12,.748,.32],[side*.12,.77,.20],.0035,divineGold,knight);
- for(let i=0;i<7;i++){const y=.51+i*.054;line([side*.12,y,-.21],[side*.123,y+.039,-.155],.004,divineGold,knight)}
+// Twelve-sided armored pedestal with a restrained levitation engine.
+const baseProfile=[[.001,.23],[.025,.3],[.07,.31],[.095,.265],[.125,.26],[.16,.29],[.205,.255],[.235,.205],[.275,.19],[.31,.205]].map(([y,r])=>new T.Vector2(r,y));
+const knightBase=new T.Mesh(new T.LatheGeometry(baseProfile,72),knightCore);knight.add(knightBase);
+const armorSkirt=new T.Mesh(new T.CylinderGeometry(.267,.315,.175,12,1,false),knightArmor);armorSkirt.position.y=.165;knight.add(armorSkirt);
+for(let i=0;i<12;i++){
+ const a=i*Math.PI/6,panel=new T.Mesh(new T.BoxGeometry(.105,.142,.026),i%3===0?knightBronze:knightArmor);
+ panel.position.set(Math.sin(a)*.291,.17,Math.cos(a)*.291);panel.rotation.y=a;panel.rotation.z=i%2?.035:-.035;knight.add(panel);
 }
-const maneFins=[];for(let i=0;i<6;i++){const fin=new T.Mesh(new T.ConeGeometry(.038,.16,4),i%2?knightSilver:knightArmor);fin.position.set(0,.55+i*.09,-.2);fin.rotation.x=-.22;fin.scale.z=1.28;knight.add(fin);maneFins.push(fin)}
-const crownCrest=new T.Mesh(new T.ConeGeometry(.06,.24,4),divineGold);crownCrest.position.set(0,1.16,-.075);crownCrest.rotation.y=Math.PI/4;knight.add(crownCrest);
+for(const [y,r,tube,material] of [[.024,.304,.011,knightEdge],[.105,.278,.007,knightHot],[.282,.215,.01,knightEdge]]){
+ const ring=new T.Mesh(new T.TorusGeometry(r,tube,8,72),material);ring.rotation.x=Math.PI/2;ring.position.y=y;knight.add(ring);
+}
+const antiGravityCore=new T.Mesh(new T.OctahedronGeometry(.088,1),knightHot);antiGravityCore.position.y=-.115;antiGravityCore.scale.y=1.45;knight.add(antiGravityCore);
+const coreOrbit=new T.Mesh(new T.TorusKnotGeometry(.112,.009,72,7,2,3),knightEdge);coreOrbit.position.y=-.115;coreOrbit.rotation.x=Math.PI/2;coreOrbit.scale.y=.55;knight.add(coreOrbit);
+const collar=new T.Mesh(new T.TorusGeometry(.218,.031,8,48),knightArmor);collar.rotation.x=Math.PI/2;collar.position.y=.315;knight.add(collar);
+
+// A dark forged body keeps the classic knight silhouette, while layered armor,
+// a luminous contour and exposed energy rails make it feel modern and complex.
+const horse=new T.Shape();horse.moveTo(-.19,.29);horse.bezierCurveTo(-.25,.48,-.22,.76,-.15,.92);horse.lineTo(-.13,1.11);horse.lineTo(-.045,1.035);horse.lineTo(.03,1.12);horse.lineTo(.055,1.0);horse.bezierCurveTo(.17,.99,.21,.92,.28,.88);horse.lineTo(.39,.82);horse.quadraticCurveTo(.425,.785,.39,.74);horse.lineTo(.32,.705);horse.lineTo(.15,.77);horse.quadraticCurveTo(.095,.76,.11,.65);horse.bezierCurveTo(.13,.53,.24,.42,.19,.29);horse.closePath();
+const horseGeometry=new T.ExtrudeGeometry(horse,{depth:.2,bevelEnabled:true,bevelThickness:.028,bevelSize:.024,bevelSegments:5,curveSegments:32,steps:1});
+const horseMesh=new T.Mesh(horseGeometry,knightCore);horseMesh.rotation.y=-Math.PI/2;horseMesh.position.x=.1;knight.add(horseMesh);
+const emberOutline=new T.LineSegments(new T.EdgesGeometry(horseGeometry,16),new T.LineBasicMaterial({color:'#ff861c',transparent:true,opacity:.92,blending:T.AdditiveBlending,depthWrite:false}));
+emberOutline.scale.set(1.025,1.012,1.045);emberOutline.renderOrder=4;horseMesh.add(emberOutline);
+
+const armorPlates=[];
+for(const side of [-1,1]){
+ const plateData=[
+  [.41,-.015,.105,.9,.9,.08],
+  [.53,-.055,.11,.82,1.05,-.14],
+  [.655,.015,.1,.7,1.08,-.35],
+  [.755,.14,.092,.58,1.12,-.62],
+  [.86,.105,.078,.52,.88,.26]
+ ];
+ plateData.forEach(([y,z,size,sy,sz,rx],i)=>{
+  const plate=new T.Mesh(new T.OctahedronGeometry(size,0),i%2?knightBronze:knightArmor);
+  plate.position.set(side*.126,y,z);plate.scale.set(.24,sy,sz);plate.rotation.x=rx;plate.rotation.z=side*(i%2?.08:-.08);knight.add(plate);armorPlates.push(plate);
+ });
+ const brow=new T.Mesh(new T.BoxGeometry(.026,.047,.19),knightBronze);brow.position.set(side*.132,.945,.115);brow.rotation.x=-.2;knight.add(brow);armorPlates.push(brow);
+ const jaw=new T.Mesh(new T.OctahedronGeometry(.108,0),knightArmor);jaw.position.set(side*.128,.765,.27);jaw.scale.set(.25,.55,1.2);jaw.rotation.x=.55;knight.add(jaw);armorPlates.push(jaw);
+ const temple=new T.Mesh(new T.CylinderGeometry(.037,.037,.029,12),knightEdge);temple.position.set(side*.142,.885,.02);temple.rotation.z=Math.PI/2;knight.add(temple);
+ const eye=ball(.026,side*.134,.932,.12,knightEye,knight);eye.scale.set(.32,.75,1.25);
+ const nostril=ball(.013,side*.126,.79,.36,knightHot,knight);nostril.scale.x=.3;
+ line([side*.142,.405,-.06],[side*.142,.565,.055],.006,knightEdge,knight);
+ line([side*.142,.565,.055],[side*.142,.72,.16],.006,knightHot,knight);
+ line([side*.142,.72,.16],[side*.142,.805,.315],.0045,knightEdge,knight);
+ for(let i=0;i<5;i++)line([side*.14,.48+i*.078,-.19],[side*.142,.52+i*.078,-.135],.0042,i%2?knightHot:knightEdge,knight);
+}
+
+// Bright rails trace the back, throat and jaw like the fire-lit reference.
+const glowRails=[];
+function glowRail(points,radius=.008,material=knightEdge){const rail=new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3(points.map(p=>new T.Vector3(...p))),48,radius,6,false),material);knight.add(rail);glowRails.push(rail);return rail}
+glowRail([[0,.31,-.145],[0,.45,-.205],[0,.64,-.22],[0,.84,-.18],[0,1.04,-.095]],.0095);
+glowRail([[0,.33,.155],[0,.46,.19],[0,.61,.135],[0,.72,.18]],.008,knightHot);
+glowRail([[0,.74,.185],[0,.77,.315],[0,.815,.395]],.0065);
+const reactor=new T.Mesh(new T.OctahedronGeometry(.074,1),knightHot);reactor.position.set(0,.48,.205);reactor.scale.set(.75,1,.42);knight.add(reactor);
+const reactorRing=new T.Mesh(new T.TorusGeometry(.105,.01,8,48),knightEdge);reactorRing.position.set(0,.48,.2);knight.add(reactorRing);
+const visor=box(.3,.025,.018,0,.947,.139,knightHot,knight);visor.rotation.x=-.08;
+
+// Blade-like mane and crown pieces add detail without hiding the horse form.
+const maneFins=[];
+for(let i=0;i<7;i++){
+ const fin=new T.Mesh(new T.ConeGeometry(.036+(i<2?.008:0),.17-i*.006,4),i%3===0?knightBronze:knightArmor);
+ fin.position.set(0,.51+i*.087,-.205+i*.012);fin.rotation.set(-.16,Math.PI/4,i%2?.055:-.055);fin.scale.z=1.38;knight.add(fin);maneFins.push(fin);
+ const finEdge=new T.Mesh(new T.ConeGeometry(.016,.155-i*.006,4),knightEdge);finEdge.position.copy(fin.position);finEdge.position.z-=.012;finEdge.rotation.copy(fin.rotation);finEdge.scale.z=.62;knight.add(finEdge);
+}
+for(const side of [-1,1]){
+ const earArmor=new T.Mesh(new T.ConeGeometry(.044,.22,4),side<0?knightArmor:knightBronze);earArmor.position.set(side*.048,1.12,-.035);earArmor.rotation.set(-.13,Math.PI/4,side*.1);knight.add(earArmor);
+}
 knight.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});
 
-// Rotating sacred-tech halo with orbit nodes, rays and crown spires.
-const divineHalo=new T.Group();divineHalo.name='sacred technology halo';divineHalo.position.set(0,.74,-.245);knight.add(divineHalo);
-const haloInner=new T.Mesh(new T.RingGeometry(.34,.358,96),energyMat('#77efff',.76));divineHalo.add(haloInner);
-const haloOuter=new T.Mesh(new T.RingGeometry(.515,.535,96),energyMat('#ffd98a',.72));divineHalo.add(haloOuter);
-const haloArcs=[];for(let i=0;i<4;i++){const arc=new T.Mesh(new T.RingGeometry(.425,.455,64,1,i*Math.PI/2+.12,Math.PI*.34),energyMat(i%2?'#a985ff':'#8ff5ff',.62));arc.userData.phase=i*.9;divineHalo.add(arc);haloArcs.push(arc)}
-for(let i=0;i<8;i++){const a=i*Math.PI/4;line([Math.cos(a)*.365,Math.sin(a)*.365,0],[Math.cos(a)*.505,Math.sin(a)*.505,0],.0055,i%2?divineGold:techCyan,divineHalo)}
-const haloNodes=[];for(let i=0;i<12;i++){const a=i*Math.PI/6,node=new T.Mesh(new T.OctahedronGeometry(i%3===0?.029:.021,0),i%3===0?divineGold:techCyan);node.position.set(Math.cos(a)*.447,Math.sin(a)*.447,.012);divineHalo.add(node);haloNodes.push(node)}
-for(let i=-2;i<=2;i++){const spire=new T.Mesh(new T.ConeGeometry(.018+(.002*(2-Math.abs(i))),.13+(.025*(2-Math.abs(i))),4),i===0?divineGold:techCyan);spire.position.set(i*.09,.57+(.018*(2-Math.abs(i))),0);spire.rotation.z=-i*.05;divineHalo.add(spire)}
-
-// Holographic wings fan out as curved energy feathers behind the armor.
-const energyWings=[],energyFeathers=[];
-for(const side of [-1,1]){
- const wing=new T.Group();wing.position.set(0,.46,-.19);wing.userData.side=side;knight.add(wing);energyWings.push(wing);
- for(let i=0;i<5;i++){
-  const tipY=-.1+i*.17,reach=.56+i*.085,root=new T.Vector3(side*.18,0,0),mid=new T.Vector3(side*(.34+i*.04),tipY*.42+.07,-.012),tip=new T.Vector3(side*reach,tipY,-.035-i*.008);
-  const featherBeam=new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3([root,mid,tip]),30,.012-i*.0009,6,false),i%2?divineGold:techCyan);wing.add(featherBeam);
-  const shape=new T.Shape();shape.moveTo(side*.19,-.018);shape.quadraticCurveTo(side*(reach*.68),tipY*.42,side*reach,tipY);shape.quadraticCurveTo(side*(reach*.76),tipY-.075,side*.2,.035);shape.closePath();
-  const feather=new T.Mesh(new T.ShapeGeometry(shape,14),energyMat(i%2?'#ffcf74':'#6eeaff',.085));feather.position.z=-.025-i*.009;feather.userData={baseOpacity:.075+i*.006,phase:i*.72+(side>0?0:Math.PI)};wing.add(feather);energyFeathers.push(feather);
- }
+// Only a faint rear halo and two low base rings remain outside the sculpture.
+const divineHalo=new T.Group();divineHalo.name='minimal ember halo';divineHalo.position.set(0,.76,-.285);knight.add(divineHalo);
+const haloInner=new T.Mesh(new T.RingGeometry(.39,.402,96),energyMat('#ff8a24',.22));divineHalo.add(haloInner);
+const haloOuter=new T.Mesh(new T.RingGeometry(.525,.534,96),energyMat('#ffc86a',.12));divineHalo.add(haloOuter);
+const haloArcs=[],haloNodes=[];
+for(let i=0;i<6;i++){
+ const a=i*Math.PI/3,node=new T.Mesh(new T.OctahedronGeometry(.016,0),knightHot);node.position.set(Math.cos(a)*.46,Math.sin(a)*.46,.004);node.material=node.material.clone();node.material.transparent=true;node.material.opacity=.48;divineHalo.add(node);haloNodes.push(node);
 }
+const baseAuraRings=[[.39,.012,-.045,.2],[.52,.007,-.075,.1]].map(([radius,tube,y,opacity])=>{const ring=new T.Mesh(new T.TorusGeometry(radius,tube,8,80),energyMat('#ff7b1a',opacity,T.FrontSide));ring.rotation.x=Math.PI/2;ring.position.y=y;knight.add(ring);return ring});
 
-// Multi-layer divine aura: energy column, shells, rings, twin helices and motes.
-const auraColumn=new T.Mesh(new T.CylinderGeometry(.16,.48,1.62,32,1,true),energyMat('#5fe6ff',.045));auraColumn.position.y=.46;knight.add(auraColumn);
-const auraCore=new T.Mesh(new T.SphereGeometry(.53,30,22),energyMat('#55d9ff',.082,T.BackSide));auraCore.position.y=.57;auraCore.scale.set(.88,1.42,.88);knight.add(auraCore);
-const auraShell=new T.Mesh(new T.SphereGeometry(.72,30,22),energyMat('#8d67ff',.045,T.BackSide));auraShell.position.y=.56;auraShell.scale.set(.96,1.2,.96);knight.add(auraShell);
-const auraRings=[
- [.38,.010,.02,'#61e7ff',.22],
- [.51,.009,.29,'#9875ff',-.18],
- [.63,.007,.57,'#ffd58c',.3],
- [.48,.007,.84,'#65edff',-.26],
- [.36,.006,1.08,'#ffe2a6',.2]
-].map(([radius,tube,y,color,tilt],i)=>{const ring=new T.Mesh(new T.TorusGeometry(radius,tube,8,80),energyMat(color,.65-i*.075,T.FrontSide));ring.position.y=y;ring.rotation.set(Math.PI/2,tilt,tilt);ring.userData={tilt,phase:i*1.43};knight.add(ring);return ring});
-const auraSpirals=[];for(const [direction,color,offset] of [[1,'#73ecff',0],[-1,'#a784ff',Math.PI]]){const spiralPoints=Array.from({length:64},(_,i)=>{const u=i/63,a=direction*u*Math.PI*4.8+offset,r=.37-.08*u;return new T.Vector3(Math.cos(a)*r,.01+u*1.16,Math.sin(a)*r)}),spiral=new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3(spiralPoints),112,.006,5,false),energyMat(color,.42,T.FrontSide));spiral.userData.direction=direction;knight.add(spiral);auraSpirals.push(spiral)}
-const moteMaterials=['#b18cff','#78efff','#ffe0a8'].map(color=>energyMat(color,.9,T.FrontSide)),auraMoteGeometry=new T.SphereGeometry(.016,8,6),auraMotes=[];
-for(let i=0;i<36;i++){const mote=new T.Mesh(auraMoteGeometry,moteMaterials[i%3]);mote.userData={phase:i*.69,radius:.34+(i%7)*.045,speed:.38+(i%6)*.042,offset:(i*.151)%1.22};knight.add(mote);auraMotes.push(mote)}
-const orbitCrystals=[];for(let i=0;i<7;i++){const crystal=new T.Mesh(new T.OctahedronGeometry(i%3===0?.045:.032,0),i%2?techViolet:divineGold);crystal.userData={phase:i*Math.PI*2/7,radius:.57+(i%2)*.07,speed:.23+(i%3)*.045,height:.48+(i%3)*.17};knight.add(crystal);orbitCrystals.push(crystal)}
-const auraLight=new T.PointLight('#67dfff',7.5,3.5,2);auraLight.position.y=.58;knight.add(auraLight);
-const divineLight=new T.PointLight('#ffd28a',4.2,2.8,2);divineLight.position.set(0,.92,-.12);knight.add(divineLight);
+// Sparse sparks stay beyond the silhouette instead of wrapping the body.
+const energyWings=[],energyFeathers=[],orbitCrystals=[];
+const moteMaterials=['#ff6d12','#ffb24a','#ffe0a0'].map(color=>energyMat(color,.72,T.FrontSide));
+const auraMoteGeometry=new T.ConeGeometry(.007,.045,4),auraMotes=[];
+for(let i=0;i<16;i++){
+ const mote=new T.Mesh(auraMoteGeometry,moteMaterials[i%3]);
+ mote.userData={phase:i*.91,radius:.55+(i%4)*.07,speed:.2+(i%5)*.035,offset:(i*.197)%1.25};mote.rotation.z=(i%5)*.45;knight.add(mote);auraMotes.push(mote);
+}
+const auraLight=new T.PointLight('#ff7918',5.1,3,2);auraLight.position.set(0,.6,.18);knight.add(auraLight);
+const divineLight=new T.PointLight('#ffc46b',2.3,2.3,2);divineLight.position.set(0,.93,.08);knight.add(divineLight);
 
 function updateKnight(time){
- const drift=reduced?0:Math.sin(time*1.28)*.055+Math.sin(time*.43)*.02;
- knight.position.copy(pos);knight.position.y=.7+drift;knight.rotation.set(reduced?0:Math.sin(time*.68)*.015,developerYaw,reduced?0:Math.sin(time*.86)*.013);
- const pulse=reduced?.45:(Math.sin(time*2.05)+1)/2;
- knightIvory.emissiveIntensity=.34+pulse*.18;knightArmor.emissiveIntensity=.85+pulse*.45;knightEye.emissiveIntensity=5.2+pulse*3.4;techCyan.emissiveIntensity=2.7+pulse*2;techViolet.emissiveIntensity=2.3+pulse*1.6;divineGold.emissiveIntensity=1.7+pulse*1.5;
- antiGravityCore.rotation.y=reduced?.4:time*1.8;antiGravityCore.rotation.x=reduced?.2:time*.72;coreOrbit.rotation.z=reduced?.2:-time*.9;reactor.rotation.z=reduced?0:time*1.25;reactorRing.rotation.z=reduced?0:-time*.62;
- maneFins.forEach((fin,i)=>fin.scale.y=1+(reduced?0:Math.sin(time*1.6+i*.55)*.08));
- divineHalo.rotation.z=reduced?.08:time*.055;haloArcs.forEach((arc,i)=>arc.rotation.z=reduced?0:Math.sin(time*.44+arc.userData.phase)*.16);haloNodes.forEach((node,i)=>{node.rotation.z=reduced?0:time*(i%2?.55:-.55);node.scale.setScalar(.82+pulse*.35)});
- energyWings.forEach((wing,i)=>{const side=wing.userData.side;wing.rotation.z=side*(.045+(reduced?0:Math.sin(time*.78+i*Math.PI)*.035));wing.rotation.y=side*(reduced?0:Math.sin(time*.5+i)*.045)});energyFeathers.forEach(feather=>{feather.material.opacity=feather.userData.baseOpacity+(reduced?0:(Math.sin(time*1.75+feather.userData.phase)+1)*.035)});
- auraColumn.material.opacity=.032+pulse*.035;auraColumn.scale.set(1+pulse*.08,1,1+pulse*.08);auraCore.material.opacity=.065+pulse*.055;auraShell.material.opacity=.032+pulse*.032;auraCore.scale.set(.88+pulse*.07,1.42+pulse*.09,.88+pulse*.07);auraShell.rotation.y=reduced?0:-time*.11;
- auraSpirals.forEach(spiral=>spiral.rotation.y=reduced?0:time*.28*spiral.userData.direction);auraRings.forEach((ring,i)=>{ring.rotation.x=Math.PI/2+(reduced?0:Math.sin(time*.57+ring.userData.phase)*.16);ring.rotation.z=ring.userData.tilt+(reduced?0:Math.cos(time*.43+ring.userData.phase)*.22);ring.scale.setScalar(1+(reduced?0:Math.sin(time*1.18+i)*.06))});
- auraMotes.forEach(mote=>{const d=mote.userData,a=time*d.speed+d.phase,r=d.radius*(1+(reduced?0:Math.sin(time+d.phase)*.12)),rise=reduced?d.offset:(d.offset+time*.105)%1.22;mote.position.set(Math.cos(a)*r,.01+rise,Math.sin(a)*r);mote.scale.setScalar(.48+(reduced?.3:(Math.sin(time*3.1+d.phase)+1)*.38))});
- orbitCrystals.forEach((crystal,i)=>{const d=crystal.userData,a=d.phase+(reduced?0:time*d.speed);crystal.position.set(Math.cos(a)*d.radius,d.height+Math.sin(a*1.7+i)*.12,Math.sin(a)*d.radius);crystal.rotation.x=reduced?.3:time*(.55+i*.035);crystal.rotation.y=reduced?.2:-time*(.7+i*.025);crystal.scale.setScalar(.78+pulse*.38)});
- auraLight.intensity=6.3+pulse*4.2;divineLight.intensity=3.4+pulse*3.1;
+ const drift=reduced?0:Math.sin(time*1.24)*.048+Math.sin(time*.42)*.015;
+ knight.position.copy(pos);knight.position.y=.7+drift;knight.rotation.set(reduced?0:Math.sin(time*.64)*.012,developerYaw,reduced?0:Math.sin(time*.82)*.01);
+ const pulse=reduced?.45:(Math.sin(time*2.1)+1)/2;
+ knightCore.emissiveIntensity=.28+pulse*.2;knightArmor.emissiveIntensity=.55+pulse*.38;knightBronze.emissiveIntensity=.58+pulse*.4;knightEdge.emissiveIntensity=2.8+pulse*2;knightHot.emissiveIntensity=4.3+pulse*2.7;knightEye.emissiveIntensity=7+pulse*4;
+ emberOutline.material.opacity=.72+pulse*.25;
+ antiGravityCore.rotation.y=reduced?.4:time*1.6;antiGravityCore.rotation.x=reduced?.2:time*.65;coreOrbit.rotation.z=reduced?.2:-time*.78;reactor.rotation.z=reduced?0:time*1.15;reactorRing.rotation.z=reduced?0:-time*.55;
+ maneFins.forEach((fin,i)=>fin.scale.y=1+(reduced?0:Math.sin(time*1.45+i*.62)*.045));
+ divineHalo.rotation.z=reduced?.06:time*.025;haloNodes.forEach((node,i)=>{node.rotation.z=reduced?0:time*(i%2?.35:-.35);node.scale.setScalar(.78+pulse*.24)});
+ baseAuraRings.forEach((ring,i)=>{ring.material.opacity=(i?.07:.14)+pulse*(i?.05:.08);ring.scale.setScalar(1+(reduced?0:Math.sin(time*.9+i)*.035))});
+ auraMotes.forEach(mote=>{const d=mote.userData,a=time*d.speed+d.phase,r=d.radius,rise=reduced?d.offset:(d.offset+time*.075)%1.25;mote.position.set(Math.cos(a)*r,.01+rise,Math.sin(a)*r);mote.rotation.y=a;const flicker=reduced?.6:.45+(Math.sin(time*4+d.phase)+1)*.25;mote.scale.setScalar(flicker)});
+ auraLight.intensity=3.9+pulse*2.7;divineLight.intensity=1.8+pulse*1.5;
 }
 // The cat is the room's navigation character. Its paws and body share one
 // locomotion clock, while its face, ears and tail move on separate cycles.
