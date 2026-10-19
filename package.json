@@ -1,1 +1,14 @@
-{"name":"sagar-developer-room","private":true,"type":"module","scripts":{"dev":"vite dist --host 0.0.0.0 --port 4173 --strictPort"},"devDependencies":{"vite":"6.4.1"}}
+{
+  "name": "sagar-developer-room",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite dist --host 0.0.0.0 --port 4173 --strictPort",
+    "android:sync": "cap sync android",
+    "android:open": "cap open android",
+    "android:run": "cap run android"
+  },
+  "devDependencies": {
+    "vite": "6.4.1"
+  }
+}
