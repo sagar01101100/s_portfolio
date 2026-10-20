@@ -1,5 +1,5 @@
 /* Sagar Portfolio PWA service worker */
-const CACHE_NAME = 'sagar-portfolio-v2';
+const CACHE_NAME = 'sagar-portfolio-v3';
 const APP_SHELL = [
   './',
   './index.html',
