@@ -1,0 +1,22 @@
+# Separate portfolio authentication API. Does not alter KnightCore containers.
+services:
+  portfolio-auth-api:
+    build:
+      context: ./backend/PortfolioAuth.Api
+      dockerfile: Dockerfile
+    container_name: portfolio-auth-api
+    restart: unless-stopped
+    env_file:
+      - /etc/portfolio-api/portfolio.env
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+      DB_SERVER: knightcore-sql-dev.c5yiswkkck0d.ap-southeast-2.rds.amazonaws.com
+      DB_NAME: PortfolioDB
+      PUBLIC_ORIGIN: https://3-25-207-136.sslip.io
+      VERIFICATION_TOKEN_MINUTES: "30"
+      SESSION_HOURS: "8"
+    ports:
+      - "127.0.0.1:8181:8080"
+    mem_limit: 256m
+    cpus: 0.50
