@@ -31,6 +31,18 @@ sudo chmod 600 /etc/portfolio-api/portfolio.env
 
 The bootstrap settings create `sagar000108` / `sagar000108@gmail.com` with role `Admin`, and `sagarpita` / `sagarpita@gmail.com` with role `User`, only if neither the username nor email already exists. Both are initially inactive/unverified and receive verification emails. The service intentionally does not promote an existing account automatically.
 
+Before starting the API, run this read-only SQL check in SSMS or through the same `sqlcmd` container used earlier. Confirm `UserIdIsIdentity` is `1`; the duplicate queries should return no rows. Do not paste passwords into SQL text.
+
+```sql
+SELECT COLUMNPROPERTY(OBJECT_ID('dbo.Users'), 'UserId', 'IsIdentity') AS UserIdIsIdentity;
+SELECT Username, COUNT_BIG(*) AS RowCount
+FROM dbo.Users GROUP BY Username HAVING COUNT_BIG(*) > 1;
+SELECT Email, COUNT_BIG(*) AS RowCount
+FROM dbo.Users GROUP BY Email HAVING COUNT_BIG(*) > 1;
+```
+
+If `UserIdIsIdentity` is not `1`, stop before deploying and review the table definition rather than altering it automatically.
+
 ## 2. Clone the isolated branch and start only the portfolio API
 
 Run on the **Ubuntu SSH terminal**. This clone is separate from `~/KnightCore`.
