@@ -1,0 +1,19 @@
+name: Portfolio auth API build
+on:
+  push:
+    branches:
+      - feature/portfolio-auth-api
+  pull_request:
+    branches:
+      - pwa-installable
+      - main
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Build auth API
+        run: dotnet build backend/PortfolioAuth.Api/PortfolioAuth.Api.csproj --configuration Release
