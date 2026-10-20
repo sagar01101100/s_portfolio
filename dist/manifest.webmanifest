@@ -1,0 +1,21 @@
+{
+  "id": "./",
+  "name": "Sagar — Interactive Developer Room",
+  "short_name": "Sagar Portfolio",
+  "description": "Explore Sagar's projects, experience and skills inside an interactive 3D developer room.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#111921",
+  "theme_color": "#111921",
+  "categories": ["portfolio", "productivity", "education"],
+  "icons": [
+    {
+      "src": "./icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
