@@ -8,7 +8,6 @@ using Microsoft.Data.SqlClient;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSingleton<PasswordHasher<PortfolioUser>>();
-builder.Services.AddSingleton<ILoggerFactory>(sp => LoggerFactory.Create(_ => { }));
 var app = builder.Build();
 
 var tokenMinutes = ReadInt("VERIFICATION_TOKEN_MINUTES", 30, 5, 1440);
@@ -31,7 +30,7 @@ app.Use(async (context, next) =>
 await EnsureSchemaAsync();
 await BootstrapConfiguredAccountsAsync();
 
-app.MapGet("/api/v1/health", async () =>
+app.MapGet("/api/v1/health", async Task<IResult> () =>
 {
     try
     {
@@ -46,7 +45,7 @@ app.MapGet("/api/v1/health", async () =>
     }
 });
 
-app.MapPost("/api/v1/auth/register", async (RegisterRequest request, PasswordHasher<PortfolioUser> hasher, ILogger<Program> logger) =>
+app.MapPost("/api/v1/auth/register", async Task<IResult> (RegisterRequest request, PasswordHasher<PortfolioUser> hasher, ILogger<Program> logger) =>
 {
     var username = (request.Username ?? "").Trim();
     var email = (request.Email ?? "").Trim();
@@ -87,7 +86,7 @@ app.MapPost("/api/v1/auth/register", async (RegisterRequest request, PasswordHas
         await transaction.CommitAsync();
         try
         {
-            await SendVerificationEmailAsync(user.Email, user.Username, token);
+            await SendVerificationEmailAsync(user.Email, user.Username, token, publicOrigin, tokenMinutes);
             return Results.Json(new { message = "Account created. Check your email for the verification link; it expires in 30 minutes." }, statusCode: 201);
         }
         catch (Exception ex)
@@ -102,7 +101,7 @@ app.MapPost("/api/v1/auth/register", async (RegisterRequest request, PasswordHas
     }
 });
 
-app.MapPost("/api/v1/auth/resend-verification", async (ResendRequest request, ILogger<Program> logger) =>
+app.MapPost("/api/v1/auth/resend-verification", async Task<IResult> (ResendRequest request, ILogger<Program> logger) =>
 {
     var email = (request.Email ?? "").Trim();
     if (email.Length is 0 or > 255 || !MailAddress.TryCreate(email, out _))
@@ -123,7 +122,7 @@ app.MapPost("/api/v1/auth/resend-verification", async (ResendRequest request, IL
         await invalidate.ExecuteNonQueryAsync();
     }
     await InsertVerificationTokenAsync(connection, null, user.UserId, token, tokenMinutes);
-    try { await SendVerificationEmailAsync(user.Email, user.Username, token); }
+    try { await SendVerificationEmailAsync(user.Email, user.Username, token, publicOrigin, tokenMinutes); }
     catch (Exception ex)
     {
         logger.LogError("Verification resend failed ({ErrorType}).", ex.GetType().Name);
@@ -131,7 +130,7 @@ app.MapPost("/api/v1/auth/resend-verification", async (ResendRequest request, IL
     return Results.Ok(new { message = "If the account needs verification, a link will be sent to its email address." });
 });
 
-app.MapGet("/api/v1/auth/verify", async (string? token) =>
+app.MapGet("/api/v1/auth/verify", async Task<IResult> (string? token) =>
 {
     if (string.IsNullOrWhiteSpace(token) || token.Length > 200)
         return Results.BadRequest(new { message = "This verification link is invalid or incomplete." });
@@ -168,7 +167,7 @@ app.MapGet("/api/v1/auth/verify", async (string? token) =>
     return Results.Content("<!doctype html><html lang=\"en\"><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>Email verified</title><body style=\"margin:0;background:#111921;color:#f3eee5;font:16px system-ui;display:grid;place-items:center;min-height:100vh\"><main style=\"max-width:520px;padding:32px;text-align:center\"><h1>Email verified</h1><p>Your Knight Space account is active. Return to the portfolio and sign in.</p><a style=\"color:#e8bd8c\" href=\"/portfolio/\">Return to portfolio</a></main></body></html>", "text/html");
 });
 
-app.MapPost("/api/v1/auth/login", async (LoginRequest request, PasswordHasher<PortfolioUser> hasher, HttpContext context) =>
+app.MapPost("/api/v1/auth/login", async Task<IResult> (LoginRequest request, PasswordHasher<PortfolioUser> hasher, HttpContext context) =>
 {
     var login = (request.Login ?? "").Trim();
     var password = request.Password ?? "";
@@ -209,7 +208,7 @@ app.MapPost("/api/v1/auth/login", async (LoginRequest request, PasswordHasher<Po
     return Results.Ok(new { user = new { user.UserId, user.Username, user.Email, user.Role }, expiresAtUtc = expires });
 });
 
-app.MapGet("/api/v1/auth/me", async (HttpContext context) =>
+app.MapGet("/api/v1/auth/me", async Task<IResult> (HttpContext context) =>
 {
     if (!context.Request.Cookies.TryGetValue("Portfolio.Session", out var rawToken) || string.IsNullOrWhiteSpace(rawToken))
         return Results.Unauthorized();
@@ -226,7 +225,7 @@ app.MapGet("/api/v1/auth/me", async (HttpContext context) =>
     return Results.Ok(new { user = new { userId = reader.GetInt64(0), username = reader.GetString(1), email = reader.GetString(2), role = reader.GetString(3) } });
 });
 
-app.MapPost("/api/v1/auth/logout", async (HttpContext context) =>
+app.MapPost("/api/v1/auth/logout", async Task<IResult> (HttpContext context) =>
 {
     if (context.Request.Cookies.TryGetValue("Portfolio.Session", out var rawToken) && !string.IsNullOrWhiteSpace(rawToken))
     {
@@ -314,7 +313,7 @@ static async Task InsertVerificationTokenAsync(SqlConnection connection, SqlTran
     await command.ExecuteNonQueryAsync();
 }
 
-static async Task SendVerificationEmailAsync(string email, string username, string token)
+static async Task SendVerificationEmailAsync(string email, string username, string token, string publicOrigin, int tokenMinutes)
 {
     var host = Environment.GetEnvironmentVariable("SMTP_HOST") ?? throw new InvalidOperationException("SMTP_HOST is not configured.");
     var port = int.TryParse(Environment.GetEnvironmentVariable("SMTP_PORT"), out var parsedPort) ? parsedPort : 587;
@@ -378,9 +377,11 @@ static async Task BootstrapOneAsync(string username, string email, string role, 
     }
     var token = CreateToken();
     await InsertVerificationTokenAsync(connection, null, id, token, ReadInt("VERIFICATION_TOKEN_MINUTES", 30, 5, 1440));
-    try { await SendVerificationEmailAsync(email, username, token); }
+    try { await SendVerificationEmailAsync(email, username, token, GetPublicOrigin(), ReadInt("VERIFICATION_TOKEN_MINUTES", 30, 5, 1440)); }
     catch (Exception ex) { Console.Error.WriteLine($"Bootstrap verification email could not be sent for {role} account ({ex.GetType().Name}). Use resend-verification after deployment."); }
 }
+
+static string GetPublicOrigin() => (Environment.GetEnvironmentVariable("PUBLIC_ORIGIN") ?? "").TrimEnd('/');
 
 static int ReadInt(string name, int fallback, int min, int max)
 {
